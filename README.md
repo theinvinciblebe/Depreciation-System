@@ -10,7 +10,7 @@ This project implements a depreciation system for tracking and managing asset de
 
 - **Backend:** PHP (15.8%)
 - **Styling:** CSS (30.5%), SCSS (26.1%), Less (25.8%)
-- **Frontend:** JavaScript (0.4%)
+- **Frontend:** JavaScript
 
 ## Features
 
