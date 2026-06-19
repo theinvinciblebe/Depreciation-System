@@ -3,16 +3,12 @@
    
 ?>
 <!-- //container =align left and right =center// -->
-<div class="container">
+<div class="container-fluid">
     <table class="table">
     <thead>
         <tr class="table-info" align="center"> 
         <th scope="col">
-        <a href="#">
-            <button type="button" class="btn btn-outline-success">
-            <i class="bi bi-patch-plus"></i>
-            </button>
-        </a>
+
         </th>
         <th scope="col">No</th>
         <th scope="col">Date</th>

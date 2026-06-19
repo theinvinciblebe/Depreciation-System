@@ -31,7 +31,7 @@
             <li><a class="dropdown-item" href="report_1.php">របាយការណ៍ទារលុយ</a></li>
             <li><a class="dropdown-item" href="report_2.php">របាយការណ៍អ្នកអត់បង់</a></li>
             <li><a class="dropdown-item" href="report_3.php">របាយការណ៍អតិថិជនមិនទាន់បង់ដាច់</a></li>
-            <li><a class="dropdown-item" href="report_4.php">របាយការណ៍អអតិថិជនបង់ដាច់</a></li>
+            <li><a class="dropdown-item" href="report_4.php">របាយការណ៍អតិថិជនបង់ដាច់</a></li>
           </ul>
         </li>
         <li class="nav-item dropdown">
@@ -48,7 +48,7 @@
       </ul>
       <form class="d-flex" role="search">
         <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
-        <button class="btn btn-outline-success" type="submit">Search</button>
+        <button class="btn btn-outline-warning" type="submit">Search</button>
       </form>
     </div>
   </div>
