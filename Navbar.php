@@ -17,10 +17,19 @@
             Setting
           </a>
           <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="customer.php">Customer</a></li>
-            <li><a class="dropdown-item" href="UserAccount.php">UserAccount</a></li>
+            <li><a class="dropdown-item" href="customer.php"><i class="fa-solid fa-users"></i> Customer</a></li>
+            <li><a class="dropdown-item" href="UserAccount.php"><i class="fa-solid fa-user-gear"></i> UserAccount</a></li>
             <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="logout.php">Logout</a></li>
+            <li>
+                <form action="logout.php" method="POST">
+                    <button type="submit" class="dropdown-item logout-btn" href="logout.php">
+                        <i class="fa-solid fa-right-from-bracket"></i> Logout
+                    </button>
+                </form>
+<!--                <a class="dropdown-item logout-btn" href="logout.php">-->
+<!--                    <i class="fa-solid fa-right-from-bracket"></i> Logout-->
+<!--                </a>-->
+            </li>
           </ul>
         </li>
         <li class="nav-item dropdown">
