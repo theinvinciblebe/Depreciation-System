@@ -1,84 +1,117 @@
 <?php
 include("Head.php");
+include("Navbar.php");
 ?>
 
-    <div class="card">
-        <div class="card-header">
-            <div class="card-title">
-                <h3>របាយការណ៍អតិថិជនមិនទាន់បង់ដាច់</h3>
+<div class="container-fluid py-4 px-md-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div>
+                <h3 class="card-title mb-0">
+                    <i class="fa-solid fa-hourglass-half text-warning me-2"></i><?php echo __('rep3_title'); ?>
+                </h3>
+                <small class="text-muted"><?php echo __('rep3_subtitle'); ?></small>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-sm btn-modern-outline" onclick="window.print()">
+                    <i class="fa-solid fa-print"></i> <?php echo __('print_report'); ?>
+                </button>
             </div>
         </div>
-        <div class="card-body">
-            <div class="container-fluid">
-                <div class="container">
-                    <table class="table">
-                        <thead class="table-bordered table-active">
+
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
                         <tr align="center">
-                            <th scope="col">ID</th>
-                            <th scope="col">CusName</th>
-                            <th scope="col">CusTel</th>
-                            <th scope="col">CusAddress</th>
-                            <th scope="col">Photo</th>
+                            <th scope="col" style="width: 70px;">#</th>
+                            <th scope="col" style="width: 80px;"><?php echo __('photo'); ?></th>
+                            <th scope="col" class="text-start"><?php echo __('cust_th_name'); ?></th>
+                            <th scope="col"><?php echo __('user_th_userid'); ?></th>
+                            <th scope="col"><?php echo __('cust_th_phone'); ?></th>
+                            <th scope="col" class="text-start"><?php echo __('cust_address'); ?></th>
+                            <th scope="col" style="width: 140px;"><?php echo __('actions'); ?></th>
                         </tr>
-                        </thead>
-                        <tbody>
-                        <?php
-                        // $sql = 'SELECT tblcustomer.cusid,tblcustomer.cusname,tblcustomer.custel,tblcustomer.cusAddress,tblcustomer.Photo,
-                        //         sum(Principal) as Total_Principal FROM tblcustomer,tbldepreciation WHERE tblcustomer.cusid = tbldepreciation.cusid and
-                        // cusid NOT IN(
-                        // SELECT cusid
-                        // FROM view_customer_paid
-                        // WHERE Clear_Date is NULL
-                        // GROUP BY cusid,cusname,custel,cusAddress,Photo
-                        // )GROUP BY cusid';
+                    </thead>
+                    <tbody>
+                    <?php
+                    $sql = "SELECT cusid, cusname, custel, cusAddress, Photo
+                            FROM view_customer_paid
+                            WHERE clear_by_userid IS NULL
+                            GROUP BY cusid, cusname, custel, cusAddress, Photo
+                            ORDER BY cusid DESC";
 
-                        // $sql = 'SELECT tblcustomer.cusid ,
-                        // tblcustomer.cusname ,
-                        // tblcustomer.cusAddress ,
-                        // tblcustomer.custel ,
-                        // tblcustomer.Photo , paid_date,principal
-                        // from tblcustomer,tbldepreciation
-                        // where tblcustomer.cusid = tbldepreciation.cusid
-                        // GROUP BY cusid';
-                        $sql = 'SELECT cusid, cusname, custel,cusAddress, Photo
-                      FROM view_customer_paid
-                      WHERE clear_by_userid IS NULL
-                      GROUP BY cusid, cusname, custel,cusAddress, Photo';
-
-                        $sum = 0;
-                        $result = $conn->query($sql);
-                        if ($result->num_rows > 0){
-                        $i = 0;
-                        while ($row = $result->fetch_assoc()){
-                        $sum++; ?>
-                        <tr align="center">
-                            <td><?php echo $row['cusid'] . '<br>'; ?></td>
-                            <td><?php echo $row['cusname'] . '<br>'; ?></td>
-                            <td><?php echo $row['custel'] . '<br>'; ?></td>
-                            <td><?php echo $row['cusAddress'] . '<br>'; ?></td>
-                            <td>
-                                <img src="images/<?php echo $row['Photo']; ?>" title="<?php echo $row['cusname']; ?>"
-                                     width="40px" height="40px" class="rounded-circle"/>
-                                <?php }
-                                } else {
-                                    echo "0 results";
-                                }
-
-                                $conn->close();
-                                ?>
-
-                        </tbody>
-                    </table>
-                </div>
-
-
-                Total Customer: <?php echo $sum ?>
-
+                    $sum = 0;
+                    $result = $conn->query($sql);
+                    if ($result && $result->num_rows > 0) {
+                        $i = 1;
+                        while ($row = $result->fetch_assoc()) {
+                            $sum++;
+                            $photoFile = !empty($row['Photo']) ? 'images/' . htmlspecialchars($row['Photo']) : '';
+                            $hasPhoto = !empty($row['Photo']) && file_exists(dirname(__FILE__) . '/images/' . $row['Photo']);
+                            ?>
+                            <tr align="center">
+                                <td class="fw-bold text-muted"><?php echo $i++; ?></td>
+                                <td>
+                                    <?php if ($hasPhoto) { ?>
+                                        <img src="<?php echo $photoFile; ?>" class="avatar-img" alt="Photo">
+                                    <?php } else { ?>
+                                        <div class="avatar-img d-inline-flex align-items-center justify-content-center bg-light text-primary">
+                                            <i class="fa-solid fa-user"></i>
+                                        </div>
+                                    <?php } ?>
+                                </td>
+                                <td class="text-start fw-bold">
+                                    <a href="depreciation.php?param=<?php echo $row['cusid']; ?>" class="text-decoration-none text-primary">
+                                        <?php echo htmlspecialchars($row['cusname']); ?>
+                                    </a>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-secondary border">#<?php echo htmlspecialchars($row['cusid']); ?></span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border px-2 py-1">
+                                        <i class="fa-solid fa-phone me-1 text-muted"></i><?php echo htmlspecialchars($row['custel']); ?>
+                                    </span>
+                                </td>
+                                <td class="text-start text-muted">
+                                    <?php echo htmlspecialchars($row['cusAddress']); ?>
+                                </td>
+                                <td>
+                                    <a href="depreciation.php?param=<?php echo $row['cusid']; ?>" class="btn btn-sm btn-outline-primary">
+                                        <i class="fa-solid fa-eye me-1"></i> <?php echo __('view_schedule'); ?>
+                                    </a>
+                                </td>
+                            </tr>
+                        <?php }
+                    } else { ?>
+                        <tr>
+                            <td colspan="7" class="text-center py-5">
+                                <div class="text-muted mb-2" style="font-size: 2.2rem;">
+                                    <i class="fa-solid fa-check-circle text-success"></i>
+                                </div>
+                                <h6 class="text-muted"><?php echo __('rep3_empty'); ?></h6>
+                            </td>
+                        </tr>
+                    <?php }
+                    $conn->close();
+                    ?>
+                    </tbody>
+                    <?php if ($sum > 0) { ?>
+                    <tfoot class="table-light">
+                        <tr class="fw-bold">
+                            <td colspan="7" class="ps-4">
+                                <?php echo __('rep3_total'); ?>: <span class="badge bg-warning text-dark"><?php echo $sum; ?></span>
+                            </td>
+                        </tr>
+                    </tfoot>
+                    <?php } ?>
+                </table>
             </div>
         </div>
     </div>
-
+</div>
 
 <?php
-include('footer.php')
+include('footer.php');
 ?>

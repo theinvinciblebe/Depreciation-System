@@ -1,5 +1,7 @@
 <?php
-    include("head.php");
+    include("auth.php");
+    include("connection.php");
+
     $Depreid = $_GET['Depreid'];
     $cusid = $_GET['cusid'];
     
@@ -12,10 +14,10 @@
         //echo "New record created successfully";
 
         header('Location: depreciation.php?param='.$cusid);
+        exit();
     } else {
         echo "Error: " . $sql . "<br>" . $conn->error;
     }
     
     $conn->close();
  
-?>

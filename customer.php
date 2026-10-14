@@ -1,119 +1,131 @@
 <?php
-    include("Head.php");
-    // if($_SESSION["uid"]==){
-    //     header('location:login.php');
-
-    // }
+include("Head.php");
+include("Navbar.php");
 ?>
-<!-- //container =align left and right =center// -->
-    <div class="card">
-        <div class="card-header">
-            <div class="card-title">
-                <h3>Customer List</h3>
+
+<div class="container-fluid py-4 px-md-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div>
+                <h3 class="card-title mb-0">
+                    <i class="fa-solid fa-users text-primary me-2"></i><?php echo __('cust_title'); ?>
+                </h3>
+                <small class="text-muted"><?php echo __('cust_subtitle'); ?></small>
+            </div>
+            <div>
+                <a href="customer-add.php" class="btn btn-modern-primary">
+                    <i class="fa-solid fa-user-plus"></i> <?php echo __('cust_add_btn'); ?>
+                </a>
             </div>
         </div>
-        <div class="card-body">
-            <div class="container-fluid">
-                <table class="table">
-                    <thead>
-                    <tr class="table-info" align="center">
-                        <th scope="col">
-                            <a href="customer-add.php">
-                                <button type="button" class="btn btn-outline-success">
-                                    <i class="bi bi-patch-plus"></i>
-                                </button>
-                            </a>
-                        </th>
-                        <th scope="col">cusid</th>
-                        <th scope="col">cusname</th>
-                        <th scope="col">custel</th>
-                        <!-- <th scope="col">IDCard</th>
-                        <th scope="col">cusAddress</th> -->
-                        <th scope="col">Photo</th>
-                        <th scope="col">ProductName</th>
-                        <th scope="col">ProductPrice</th>
-                        <!-- <th scope="col">Interest</th>
-                        <th scope="col">Duration</th>
-                        <th scope="col">Create_Date</th>
-                        <th scope="col">Userid</th> -->
-                        <th scope="col">Action</th>
 
-                    </tr>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr align="center">
+                            <th scope="col" style="width: 70px;"><?php echo __('cust_th_num'); ?></th>
+                            <th scope="col" style="width: 90px;"><?php echo __('cust_th_photo'); ?></th>
+                            <th scope="col" class="text-start"><?php echo __('cust_th_name'); ?></th>
+                            <th scope="col"><?php echo __('cust_th_phone'); ?></th>
+                            <th scope="col"><?php echo __('cust_th_product'); ?></th>
+                            <th scope="col"><?php echo __('cust_th_price'); ?></th>
+                            <th scope="col" style="width: 170px;"><?php echo __('cust_th_actions'); ?></th>
+                        </tr>
                     </thead>
                     <tbody>
-
                     <?php
-                    $sql="SELECT * FROM tblcustomer";
-                    $result=$conn->query($sql);
-                    if($result->num_rows > 0){
-                        //output data of each row
-                        $i=1;
-                        while ($row =$result->fetch_assoc()){
-                            // echo 'ID: ' . $row['userid'];
-                            // echo ' Name: ' . $row['username']. '<br>';
+                    $sql = "SELECT * FROM tblcustomer ORDER BY cusid DESC";
+                    $result = $conn->query($sql);
+                    if ($result && $result->num_rows > 0) {
+                        $i = 1;
+                        while ($row = $result->fetch_assoc()) {
+                            $photoFile = !empty($row['Photo']) ? 'images/' . htmlspecialchars($row['Photo']) : '';
+                            $hasPhoto = !empty($row['Photo']) && file_exists(dirname(__FILE__) . '/images/' . $row['Photo']);
                             ?>
-                            <tr class="table-light" align="center">
-                                <th scope="row"></th>
-                                <td><?php echo $i++ ?> </td>
+                            <tr align="center">
+                                <td class="fw-bold text-muted"><?php echo $i++; ?></td>
                                 <td>
-                                    <a href="depreciation.php?param=<?php echo $row['cusid'] ; ?>">
-                                        <?php echo $row['cusname'] ; ?>
+                                    <?php if ($hasPhoto) { ?>
+                                        <img src="<?php echo $photoFile; ?>" class="avatar-img" alt="Customer Photo">
+                                    <?php } else { ?>
+                                        <div class="avatar-img d-inline-flex align-items-center justify-content-center bg-light text-primary fw-bold" style="font-size: 1.1rem;">
+                                            <i class="fa-solid fa-user"></i>
+                                        </div>
+                                    <?php } ?>
+                                </td>
+                                <td class="text-start">
+                                    <a href="depreciation.php?param=<?php echo $row['cusid']; ?>" class="fw-bold text-decoration-none d-flex align-items-center gap-2" title="<?php echo __('view_schedule'); ?>">
+                                        <span class="text-primary"><?php echo htmlspecialchars($row['cusname']); ?></span>
+                                        <i class="fa-solid fa-arrow-up-right-from-square fa-xs text-muted"></i>
                                     </a>
+                                    <small class="text-muted d-block">ID: #<?php echo htmlspecialchars($row['cusid']); ?></small>
                                 </td>
-
-                                <td><?php echo $row['custel']; ?></td>
                                 <td>
-                                    <img src="images/<?php echo $row['Photo']; ?>" height="50" widgth="50" class="rounded-circle" alt="">
+                                    <span class="badge bg-light text-dark border px-2 py-1">
+                                        <i class="fa-solid fa-phone fa-xs text-muted me-1"></i><?php echo htmlspecialchars($row['custel']); ?>
+                                    </span>
                                 </td>
-                                <td><?php echo $row['ProductName']; ?></td>
-                                <td><?php echo $row['ProductPrice']; ?></td>
-                                <!-- <td>
-                        <img src="images/<?php echo $row['photo']; ?>" height="50" widgth="50" class="rounded-circle" alt="">
-                    </td> -->
                                 <td>
-                                    <!-- <a href="#">Edit</a>
-                                    | <a href="#">Del</a> -->
-                                    <a href="customer-edit.php?param=<?php echo $row['cusid']; ?>" style="text-decoration: none:"><button type="button" class="btn btn-outline-info"><i class="bi bi-pencil-square">Edit</i></button></a>
-                                    <a href="customer-delete.php?param=<?php echo $row['cusid']; ?>"><button type="button" class="btn btn-outline-danger"><i class="bi bi-trash">Del</i></button></a>
-
-                                    <!-- | <a href="#">Update</a>
-                                    | <a href="#">Add</a> -->
+                                    <span class="fw-semibold"><?php echo htmlspecialchars($row['ProductName']); ?></span>
+                                </td>
+                                <td>
+                                    <span class="fw-bold text-success">$<?php echo number_format((float)$row['ProductPrice'], 2); ?></span>
+                                </td>
+                                <td>
+                                    <div class="d-inline-flex align-items-center gap-2">
+                                        <a href="customer-edit.php?param=<?php echo $row['cusid']; ?>" class="btn btn-sm btn-outline-primary" title="<?php echo __('edit'); ?>">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </a>
+                                        <form action="customer-delete.php" method="POST" class="d-inline m-0">
+                                            <input type="hidden" name="cusid" value="<?php echo $row['cusid']; ?>">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger delete-btn" title="<?php echo __('delete'); ?>">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                             <?php
                         }
-                    }else{
-                        echo "0 results";
+                    } else {
+                        ?>
+                        <tr>
+                            <td colspan="7" class="text-center py-5">
+                                <div class="text-muted mb-2" style="font-size: 2.5rem;">
+                                    <i class="fa-regular fa-folder-open"></i>
+                                </div>
+                                <h6 class="text-muted"><?php echo __('cust_no_records'); ?></h6>
+                                <p class="text-muted small mb-3"><?php echo __('cust_start_create'); ?></p>
+                                <a href="customer-add.php" class="btn btn-sm btn-modern-primary">
+                                    <i class="fa-solid fa-user-plus"></i> <?php echo __('cust_add_btn'); ?>
+                                </a>
+                            </td>
+                        </tr>
+                        <?php
                     }
                     $conn->close();
                     ?>
-
-
-                    <!-- <tr>
-                    <th scope="row">2</th>
-                    <td>Ching</td>
-                    <td>abc123</td>
-                    <td>
-                        <img src="images/excel/7.jpeg" height="50" widgth="50" class="rounded-circle" alt="">
-                    </td>
-                    </tr>
-                    <tr>
-                    <th scope="row">3</th>
-                    <td colspan="1">Be</td>
-                    <td>abc123</td>
-                    <td>
-                    <img src="images/excel/12.jpeg" height="50" widgth="50" class="rounded-circle" alt="">
-                    </td>
-                    </tr> -->
                     </tbody>
-                </table></div>
+                </table>
+            </div>
         </div>
-
     </div>
+</div>
 
-
-
+<?php if (isset($_GET['deleted'])) { ?>
+    <script>
+        window.addEventListener("load", function () {
+            Swal.fire({
+                icon: "success",
+                title: "Deleted!",
+                text: "<?php echo __('cust_deleted_success'); ?>",
+                confirmButtonColor: "#4f46e5"
+            });
+        });
+    </script>
+<?php } ?>
 
 <?php
-    include("footer.php");
+include("footer.php");
 ?>

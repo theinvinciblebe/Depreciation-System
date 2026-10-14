@@ -1,41 +1,18 @@
 <?php
-    include("head.php");
+include("head.php");
 
-    //getcwd() : get current directory
-if(isset($_POST['btnsave'])){
-    $param=$_GET['param'];
-    $sql="DELETE FROM tblusername WHERE userid=$param";
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
+    $userid = (int)$_POST['userid'];
 
-    if ($conn->query($sql) === TRUE) {
-        //echo "New record created successfully";
+    $stmt = $conn->prepare("DELETE FROM tblusername WHERE userid = ?");
+    $stmt->bind_param("i", $userid);
 
-        header('Location: UserAccount.php');
+    if ($stmt->execute()) {
+        header("Location: UserAccount.php");
+        exit();
     } else {
-        echo "Error: " . $sql . "<br>" . $conn->error;
+        echo "Delete failed: " . $conn->error;
     }
-    
-    $conn->close();
 }
-    
-?>
-
-
-    <div class="container">
-        <form method="post" enctype="multipart/form-data">
-            <div class="mb-3">
-                <label for="formFile" class="form-label">Are you sure you want to delete it?</label>
-
-            
-            </div>
-
-            <div class="mb-3">
-                <button type="submit" name="btnsave" class="btn btn-primary">Yes</button>
-
-            </div>
-        </form>
-    </div>
-
-<?php
-    include("footer.php");
 ?>

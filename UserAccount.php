@@ -1,84 +1,110 @@
 <?php
-    include("Head.php");
-    // if($_SESSION["uid"]==""){
-    //     // header('location:login.php');
-
-    // }
+include("Head.php");
+include("Navbar.php");
 ?>
-<!-- //container =align left and right =center// -->
-<div class="card">
-    <div class="card-header">
-        <div class="card-title">
-            <h3>User List</h3>
+
+<div class="container-fluid py-4 px-md-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div>
+                <h3 class="card-title mb-0">
+                    <i class="fa-solid fa-user-shield text-primary me-2"></i><?php echo __('user_title'); ?>
+                </h3>
+                <small class="text-muted"><?php echo __('user_subtitle'); ?></small>
+            </div>
+            <div>
+                <a href="useraccount-add.php" class="btn btn-modern-primary">
+                    <i class="fa-solid fa-user-plus"></i> <?php echo __('user_add_btn'); ?>
+                </a>
+            </div>
         </div>
-    </div>
-    <div class="card-body">
-        <div class="container-fluid">
-            <table class="table">
-                <thead>
-                <tr class="table-info" align="center">
-                    <th scope="col">
-                        <a href="useraccount-add.php">
-                            <button type="button" class="btn btn-outline-info">
-                                <i class="bi bi-patch-plus"></i>
-                            </button>
-                        </a>
-                    </th>
-                    <th scope="col">UserID</th>
-                    <th scope="col">UserName</th>
-                    <th scope="col">Password</th>
-                    <th scope="col">Photo</th>
-                    <th scope="col">Action</th>
 
-                </tr>
-                </thead>
-                <tbody>
-
-                <?php
-                $sql="SELECT * FROM tblusername";
-                $result=$conn->query($sql);
-                if($result->num_rows > 0){
-                    //output data of each row
-                    $i=1;
-                    while ($row =$result->fetch_assoc()){
-                        // echo 'ID: ' . $row['userid'];
-                        // echo ' Name: ' . $row['username']. '<br>';
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr align="center">
+                            <th scope="col" style="width: 70px;">#</th>
+                            <th scope="col" style="width: 90px;"><?php echo __('user_th_avatar'); ?></th>
+                            <th scope="col" class="text-start"><?php echo __('user_th_username'); ?></th>
+                            <th scope="col"><?php echo __('user_th_userid'); ?></th>
+                            <th scope="col"><?php echo __('user_th_security'); ?></th>
+                            <th scope="col" style="width: 170px;"><?php echo __('actions'); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php
+                    $sql = "SELECT * FROM tblusername ORDER BY userid DESC";
+                    $result = $conn->query($sql);
+                    if ($result && $result->num_rows > 0) {
+                        $i = 1;
+                        while ($row = $result->fetch_assoc()) {
+                            $photoFile = !empty($row['Photo']) ? 'images/' . htmlspecialchars($row['Photo']) : '';
+                            $hasPhoto = !empty($row['Photo']) && file_exists(dirname(__FILE__) . '/images/' . $row['Photo']);
+                            ?>
+                            <tr align="center">
+                                <td class="fw-bold text-muted"><?php echo $i++; ?></td>
+                                <td>
+                                    <?php if ($hasPhoto) { ?>
+                                        <img src="<?php echo $photoFile; ?>" class="avatar-img" alt="User Avatar">
+                                    <?php } else { ?>
+                                        <div class="avatar-img d-inline-flex align-items-center justify-content-center bg-primary-subtle text-primary fw-bold">
+                                            <i class="fa-solid fa-user-tie"></i>
+                                        </div>
+                                    <?php } ?>
+                                </td>
+                                <td class="text-start">
+                                    <span class="fw-bold text-primary"><?php echo htmlspecialchars($row['username']); ?></span>
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle ms-2"><?php echo __('admin'); ?></span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-secondary border px-2 py-1">
+                                        #<?php echo htmlspecialchars($row['userid']); ?>
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="text-muted"><i class="fa-solid fa-lock me-1 fa-xs"></i>••••••••</span>
+                                </td>
+                                <td>
+                                    <div class="d-inline-flex align-items-center gap-2">
+                                        <a href="useraccount-edit.php?param=<?php echo $row['userid']; ?>" class="btn btn-sm btn-outline-primary" title="<?php echo __('edit'); ?>">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </a>
+                                        <form action="useraccount-delete.php" method="POST" class="d-inline m-0">
+                                            <input type="hidden" name="userid" value="<?php echo $row['userid']; ?>">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger delete-btn" title="<?php echo __('delete'); ?>">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            <?php
+                        }
+                    } else {
                         ?>
-                        <tr class="table-light" align="center">
-                            <th scope="row"></th>
-                            <th scope="row"><?php echo $i++; ?></th>
-                            <td><?php echo $row['username']; ?> </td>
-                            <td>*****</td>
-                            <td>
-                                <img src="images/<?php echo $row['Photo']; ?>" height="50" widgth="50" class="rounded-circle" alt="">
-                            </td>
-                            <td>
-                                <!-- <a href="#">Edit</a>
-                                | <a href="#">Del</a> -->
-                                <a href="useraccount-edit.php?param=<?php echo $row['userid']; ?>" style="text-decoration: none:"><button type="button" class="btn btn-outline-info"><i class="bi bi-pencil-square">Edit</i></button></a>
-                                <a href="useraccount-delete.php?param=<?php echo $row['userid']; ?>"><button type="button" class="btn btn-outline-danger"><i class="bi bi-trash">Del</i></button></a>
-
-                                <!-- | <a href="#">Update</a>
-                                | <a href="#">Add</a> -->
+                        <tr>
+                            <td colspan="6" class="text-center py-5">
+                                <div class="text-muted mb-2" style="font-size: 2.5rem;">
+                                    <i class="fa-regular fa-user"></i>
+                                </div>
+                                <h6 class="text-muted">No user accounts found</h6>
+                                <a href="useraccount-add.php" class="btn btn-sm btn-modern-primary mt-2">
+                                    <i class="fa-solid fa-user-plus"></i> <?php echo __('user_add_btn'); ?>
+                                </a>
                             </td>
                         </tr>
                         <?php
                     }
-                }else{
-                    echo "0 results";
-                }
-                $conn->close();
-                ?>
-
-                </tbody>
-            </table>
+                    $conn->close();
+                    ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-
 </div>
 
-
-
 <?php
-    include("footer.php");
+include("footer.php");
 ?>
