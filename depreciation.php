@@ -1,45 +1,50 @@
 <?php
-include("Head.php");
-include("Navbar.php");
+declare(strict_types=1);
 
-$param = 0;
-if (isset($_GET['param'])) {
-    $param = (int)$_GET['param'];
-}
+include_once("Head.php");
+include_once("Navbar.php");
 
-// Fetch Customer Details
+$param = isset($_GET['param']) ? (int)$_GET['param'] : 0;
+
+// Fetch Customer Details using prepared statement
 $customerName = 'Customer';
 $productName = 'Asset';
-$productPrice = 0;
-$sqlCustomer = "SELECT * FROM tblcustomer WHERE cusid = $param";
-$resCustomer = $conn->query($sqlCustomer);
+$productPrice = 0.0;
+
+$resCustomer = $conn->execute_query("SELECT * FROM tblcustomer WHERE cusid = ? LIMIT 1", [$param]);
 if ($resCustomer && $cRow = $resCustomer->fetch_assoc()) {
-    $customerName = $cRow['cusname'];
-    $productName = $cRow['ProductName'];
-    $productPrice = $cRow['ProductPrice'];
+    $customerName = (string)($cRow['cusname'] ?? 'Customer');
+    $productName = (string)($cRow['ProductName'] ?? 'Asset');
+    $productPrice = (float)($cRow['ProductPrice'] ?? 0);
 }
 
-// Query Depreciation entries
-$sql = "SELECT *, if(clear_by_userid, 'Paid', 'Pending') as statusPaid FROM tbldepreciation WHERE cusid = $param ORDER BY Paid_Date ASC";
-$result = $conn->query($sql);
+// Query Depreciation entries with parameterized query
+$result = $conn->execute_query(
+    "SELECT *, IF(clear_by_userid IS NOT NULL, 'Paid', 'Pending') AS statusPaid 
+     FROM tbldepreciation 
+     WHERE cusid = ? 
+     ORDER BY Paid_Date ASC",
+    [$param]
+);
 
 $rows = [];
-$totalPending = 0;
-$totalPaid = 0;
+$totalPending = 0.0;
+$totalPaid = 0.0;
 
 if ($result && $result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
         $rows[] = $row;
-        if (is_null($row['clear_by_userid'])) {
-            $totalPending += (float)$row['Principal'] + (float)$row['Interest_Month'];
+        $monthlyAmount = (float)($row['Principal'] ?? 0) + (float)($row['Interest_Month'] ?? 0);
+        if ($row['clear_by_userid'] === null) {
+            $totalPending += $monthlyAmount;
         } else {
-            $totalPaid += (float)$row['Principal'] + (float)$row['Interest_Month'];
+            $totalPaid += $monthlyAmount;
         }
     }
 }
 
 $grandTotal = $totalPaid + $totalPending;
-$progressPercent = $grandTotal > 0 ? round(($totalPaid / $grandTotal) * 100) : 0;
+$progressPercent = $grandTotal > 0 ? (int)round(($totalPaid / $grandTotal) * 100) : 0;
 ?>
 
 <div class="container-fluid py-4 px-md-4">
@@ -156,28 +161,34 @@ $progressPercent = $grandTotal > 0 ? round(($totalPaid / $grandTotal) * 100) : 0
                     if (!empty($rows)) {
                         $i = 1;
                         foreach ($rows as $row) {
-                            $isPaid = ($row['statusPaid'] === 'Paid');
-                            $totalMonthly = (float)$row['Principal'] + (float)$row['Interest_Month'];
+                            $isPaid = (($row['statusPaid'] ?? '') === 'Paid');
+                            $principalVal = (float)($row['Principal'] ?? 0);
+                            $interestVal = (float)($row['Interest_Month'] ?? 0);
+                            $totalMonthly = $principalVal + $interestVal;
+                            $depreId = (int)($row['Depreid'] ?? 0);
+                            $cusId = (int)($row['cusid'] ?? 0);
+                            $paidDate = (string)($row['Paid_Date'] ?? '');
+                            $clearDate = (string)($row['Clear_Date'] ?? '');
                             ?>
                             <tr align="center">
                                 <td class="fw-bold text-muted"><?php echo $i++; ?></td>
                                 <td>
                                     <span class="fw-semibold">
                                         <i class="fa-regular fa-calendar me-1 text-muted"></i>
-                                        <?php echo htmlspecialchars($row['Paid_Date']); ?>
+                                        <?php echo h($paidDate); ?>
                                     </span>
                                 </td>
-                                <td>$<?php echo number_format((float)$row['Principal'], 2); ?></td>
-                                <td>$<?php echo number_format((float)$row['Interest_Month'], 2); ?></td>
+                                <td>$<?php echo number_format($principalVal, 2); ?></td>
+                                <td>$<?php echo number_format($interestVal, 2); ?></td>
                                 <td>
                                     <span class="fw-bold text-primary">$<?php echo number_format($totalMonthly, 2); ?></span>
                                 </td>
                                 <td>
                                     <?php if ($isPaid) { ?>
                                         <span class="badge-status badge-status-paid"><?php echo __('depre_paid'); ?></span>
-                                        <?php if (!empty($row['Clear_Date'])) { ?>
+                                        <?php if ($clearDate !== '') { ?>
                                             <small class="text-muted d-block" style="font-size: 0.75rem;">
-                                                <?php echo htmlspecialchars($row['Clear_Date']); ?>
+                                                <?php echo h($clearDate); ?>
                                             </small>
                                         <?php } ?>
                                     <?php } else { ?>
@@ -186,7 +197,7 @@ $progressPercent = $grandTotal > 0 ? round(($totalPaid / $grandTotal) * 100) : 0
                                 </td>
                                 <td>
                                     <?php if (!$isPaid) { ?>
-                                        <a href="clearAmount.php?Depreid=<?php echo $row['Depreid']; ?>&cusid=<?php echo $row['cusid']; ?>" class="btn btn-sm btn-modern-success py-1 px-3" onclick="return confirm('<?php echo __('depre_confirm_settle'); ?>');">
+                                        <a href="clearAmount.php?Depreid=<?php echo $depreId; ?>&cusid=<?php echo $cusId; ?>" class="btn btn-sm btn-modern-success py-1 px-3" onclick="return confirm('<?php echo __('depre_confirm_settle'); ?>');">
                                             <i class="fa-solid fa-circle-check"></i> <?php echo __('depre_settle_btn'); ?>
                                         </a>
                                     <?php } else { ?>
@@ -210,7 +221,6 @@ $progressPercent = $grandTotal > 0 ? round(($totalPaid / $grandTotal) * 100) : 0
                         </tr>
                         <?php
                     }
-                    $conn->close();
                     ?>
                     </tbody>
                 </table>

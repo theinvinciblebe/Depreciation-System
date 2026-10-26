@@ -1,22 +1,32 @@
 <?php
+declare(strict_types=1);
 
-// $con="MySQL";
-
-$severname = "localhost";
+$servername = "localhost";
+$severname = $servername; // Backwards compatibility for legacy references
 $username = "root";
 $password = "";
 $dbname = "db_depreciation";
 
-// change date to default date
+// Set default timezone
 date_default_timezone_set("Asia/Bangkok");
-//session_start();
 
-//Create cnnection
-$conn = mysqli_connect($severname, $username, $password, $dbname);
+// Create MySQLi connection
+mysqli_report(MYSQLI_REPORT_OFF);
+$conn = @mysqli_connect($servername, $username, $password, $dbname);
 
 // Check connection
 if (!$conn) {
-    die("Connection failed: " . mysqli_connect_error());
-} else {
-    //echo "Connected Successfully";
+    die("Database connection failed: " . mysqli_connect_error());
+}
+
+// Ensure UTF-8 (utf8mb4) character set for Khmer and international Unicode
+$conn->set_charset("utf8mb4");
+
+/**
+ * Null-safe HTML escaping helper for PHP 8.1+ compatibility
+ */
+if (!function_exists('h')) {
+    function h(?string $value): string {
+        return htmlspecialchars($value ?? '', ENT_QUOTES, 'UTF-8');
+    }
 }

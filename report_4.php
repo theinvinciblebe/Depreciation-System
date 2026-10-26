@@ -1,6 +1,7 @@
 <?php
-include("Head.php");
-include("Navbar.php");
+declare(strict_types=1);
+include_once("Head.php");
+include_once("Navbar.php");
 ?>
 
 <div class="container-fluid py-4 px-md-4">
@@ -50,8 +51,13 @@ include("Navbar.php");
                         $i = 1;
                         while ($row = $result->fetch_assoc()) {
                             $sum++;
-                            $photoFile = !empty($row['Photo']) ? 'images/' . htmlspecialchars($row['Photo']) : '';
-                            $hasPhoto = !empty($row['Photo']) && file_exists(dirname(__FILE__) . '/images/' . $row['Photo']);
+                            $rawPhoto = (string)($row['Photo'] ?? '');
+                            $photoFile = $rawPhoto !== '' ? 'images/' . h($rawPhoto) : '';
+                            $hasPhoto = $rawPhoto !== '' && file_exists(__DIR__ . '/images/' . $rawPhoto);
+                            $cusId = (string)($row['cusid'] ?? '');
+                            $cusName = (string)($row['cusname'] ?? '');
+                            $cusTel = (string)($row['custel'] ?? '');
+                            $cusAddress = (string)($row['cusAddress'] ?? '');
                             ?>
                             <tr align="center">
                                 <td class="fw-bold text-muted"><?php echo $i++; ?></td>
@@ -65,20 +71,20 @@ include("Navbar.php");
                                     <?php } ?>
                                 </td>
                                 <td class="text-start fw-bold text-success">
-                                    <a href="depreciation.php?param=<?php echo $row['cusid']; ?>" class="text-decoration-none text-success">
-                                        <?php echo htmlspecialchars($row['cusname']); ?>
+                                    <a href="depreciation.php?param=<?php echo urlencode($cusId); ?>" class="text-decoration-none text-success">
+                                        <?php echo h($cusName); ?>
                                     </a>
                                 </td>
                                 <td>
-                                    <span class="badge bg-light text-secondary border">#<?php echo htmlspecialchars($row['cusid']); ?></span>
+                                    <span class="badge bg-light text-secondary border">#<?php echo h($cusId); ?></span>
                                 </td>
                                 <td>
                                     <span class="badge bg-light text-dark border px-2 py-1">
-                                        <i class="fa-solid fa-phone me-1 text-muted"></i><?php echo htmlspecialchars($row['custel']); ?>
+                                        <i class="fa-solid fa-phone me-1 text-muted"></i><?php echo h($cusTel); ?>
                                     </span>
                                 </td>
                                 <td class="text-start text-muted">
-                                    <?php echo htmlspecialchars($row['cusAddress']); ?>
+                                    <?php echo h($cusAddress); ?>
                                 </td>
                                 <td>
                                     <span class="badge-status badge-status-paid"><?php echo __('rep4_status_settled'); ?></span>
@@ -95,7 +101,6 @@ include("Navbar.php");
                             </td>
                         </tr>
                     <?php }
-                    $conn->close();
                     ?>
                     </tbody>
                     <?php if ($sum > 0) { ?>

@@ -5,8 +5,10 @@ if (!function_exists('__')) {
 }
 
 // Get current active script name for active link highlighting
-$current_page = basename($_SERVER['PHP_SELF']);
-$userName = isset($_SESSION['uName']) ? htmlspecialchars($_SESSION['uName']) : 'User';
+$current_page = basename($_SERVER['PHP_SELF'] ?? '');
+$rawUserName = isset($_SESSION['uName']) ? (string)$_SESSION['uName'] : 'User';
+$userName = htmlspecialchars($rawUserName, ENT_QUOTES, 'UTF-8');
+$userInitial = strtoupper(substr($rawUserName !== '' ? $rawUserName : 'U', 0, 1));
 ?>
 
 <nav class="navbar navbar-expand-lg modern-navbar">
@@ -168,7 +170,7 @@ $userName = isset($_SESSION['uName']) ? htmlspecialchars($_SESSION['uName']) : '
         <div class="nav-item dropdown">
           <a class="nav-link dropdown-toggle p-1 d-flex align-items-center gap-2" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="border-radius: var(--radius-full); background: var(--bg-subtle);">
             <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--gradient-primary); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem;">
-              <?php echo strtoupper(substr($userName, 0, 1)); ?>
+              <?php echo $userInitial; ?>
             </div>
             <span class="d-none d-sm-inline fw-semibold" style="font-size: 0.88rem; padding-right: 0.5rem;"><?php echo $userName; ?></span>
           </a>

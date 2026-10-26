@@ -1,47 +1,74 @@
 <?php
-ob_start();
-include("Head.php");
-include("Navbar.php");
+declare(strict_types=1);
+
+include_once("auth.php");
+include_once("connection.php");
+include_once("lang.php");
 
 $param = isset($_GET['param']) ? (int)$_GET['param'] : 0;
-$sqlGet = "SELECT * FROM tblusername WHERE userid = $param";
-$result = $conn->query($sqlGet);
-if ($result && $result->num_rows > 0) {
-    $row = $result->fetch_assoc();
-    $GetUsername = $row['username'];
-    $GetPassword = $row['userpassword'];
-    $Getphoto = $row['Photo'];
+$result = $conn->execute_query("SELECT * FROM tblusername WHERE userid = ? LIMIT 1", [$param]);
+
+if ($result && $row = $result->fetch_assoc()) {
+    $GetUsername = (string)($row['username'] ?? '');
+    $GetPassword = (string)($row['userpassword'] ?? '');
+    $Getphoto = (string)($row['Photo'] ?? '');
 } else {
     header('Location: UserAccount.php');
     exit();
 }
 
-if (isset($_POST['btnsave'])) {
-    $txtname = $_POST['txtUsername'];
-    $txtpass = $_POST['txtpassword'];
+$errorMsg = null;
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['btnsave'])) {
+    $txtname = trim((string)($_POST['txtUsername'] ?? ''));
+    $txtpass = (string)($_POST['txtpassword'] ?? '');
 
-    $imgname = $Getphoto;
-    if (!empty($_FILES['fileToUpload']['name'])) {
-        $uploaddir = getcwd() . '/images/';
-        $imgname = time() . '_' . basename($_FILES['fileToUpload']['name']);
-        $uploadfile = $uploaddir . $imgname;
-        move_uploaded_file($_FILES['fileToUpload']['tmp_name'], $uploadfile);
-    }
-
-    $sql = "UPDATE tblusername SET 
-                username = '$txtname',
-                userpassword = '$txtpass',
-                Photo = '$imgname'
-            WHERE userid = $param";
-
-    if ($conn->query($sql) === TRUE) {
-        $conn->close();
-        header('Location: UserAccount.php');
-        exit();
+    if ($txtname === '') {
+        $errorMsg = "Username cannot be empty.";
     } else {
-        $errorMsg = "Error: " . $sql . "<br>" . $conn->error;
+        // If password changed or is plaintext, hash it; otherwise keep existing hash
+        $finalPassword = $GetPassword;
+        if ($txtpass !== '' && $txtpass !== $GetPassword) {
+            $finalPassword = password_hash($txtpass, PASSWORD_DEFAULT);
+        }
+
+        $imgname = $Getphoto;
+        if (!empty($_FILES['fileToUpload']['name']) && $_FILES['fileToUpload']['error'] === UPLOAD_ERR_OK) {
+            $uploaddir = __DIR__ . '/images/';
+            if (!is_dir($uploaddir)) {
+                mkdir($uploaddir, 0755, true);
+            }
+            $ext = strtolower(pathinfo($_FILES['fileToUpload']['name'], PATHINFO_EXTENSION));
+            $allowed = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+            if (in_array($ext, $allowed, true)) {
+                $imgname = time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+                move_uploaded_file($_FILES['fileToUpload']['tmp_name'], $uploaddir . $imgname);
+            }
+        }
+
+        try {
+            $updated = $conn->execute_query(
+                "UPDATE tblusername SET username = ?, userpassword = ?, Photo = ? WHERE userid = ?",
+                [$txtname, $finalPassword, $imgname, $param]
+            );
+
+            if ($updated) {
+                // If editing self, update active session username
+                if (isset($_SESSION['uid']) && (int)$_SESSION['uid'] === $param) {
+                    $_SESSION['uName'] = $txtname;
+                }
+                header('Location: UserAccount.php');
+                exit();
+            } else {
+                $errorMsg = "Failed to update: " . $conn->error;
+            }
+        } catch (\Throwable $e) {
+            $errorMsg = "Database error: " . $e->getMessage();
+        }
     }
 }
+
+include_once("Head.php");
+include_once("Navbar.php");
 ?>
 
 <div class="container py-4" style="max-width: 680px;">

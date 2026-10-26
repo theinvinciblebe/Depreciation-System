@@ -1,33 +1,32 @@
 <?php
-    $sqlTotaluser = 'SELECT COUNT(*) AS total_users FROM tblusername';
-    $result = $conn->query($sqlTotaluser);
-    $totalUser = 0;
-    if ($result && $row = $result->fetch_assoc()) {
-        $totalUser = $row['total_users'];
-    }
+declare(strict_types=1);
 
-    $sqlTotalCus = 'SELECT COUNT(*) AS total_customers FROM tblcustomer';
-    $resultCus = $conn->query($sqlTotalCus);
-    $totalCus = 0;
-    if ($resultCus && $rowCus = $resultCus->fetch_assoc()) {
-        $totalCus = $rowCus['total_customers'];
-    }
+$totalUser = 0;
+$result = $conn->query('SELECT COUNT(*) AS total_users FROM tblusername');
+if ($result && $row = $result->fetch_assoc()) {
+    $totalUser = (int)($row['total_users'] ?? 0);
+}
 
-    $totalPaidCount = 0;
-    $sqlPaid = "SELECT COUNT(*) as count FROM tbldepreciation WHERE clear_by_userid IS NOT NULL";
-    $resPaid = $conn->query($sqlPaid);
-    if ($resPaid && $r = $resPaid->fetch_assoc()) {
-        $totalPaidCount = $r['count'];
-    }
+$totalCus = 0;
+$resultCus = $conn->query('SELECT COUNT(*) AS total_customers FROM tblcustomer');
+if ($resultCus && $rowCus = $resultCus->fetch_assoc()) {
+    $totalCus = (int)($rowCus['total_customers'] ?? 0);
+}
 
-    $uName = isset($_SESSION['uName']) ? htmlspecialchars($_SESSION['uName']) : 'Admin';
-    $hour = (int)date('H');
-    $greeting = __('good_morning');
-    if ($hour >= 12 && $hour < 18) {
-        $greeting = __('good_afternoon');
-    } elseif ($hour >= 18 || $hour < 5) {
-        $greeting = __('good_evening');
-    }
+$totalPaidCount = 0;
+$resPaid = $conn->query("SELECT COUNT(*) AS count FROM tbldepreciation WHERE clear_by_userid IS NOT NULL");
+if ($resPaid && $r = $resPaid->fetch_assoc()) {
+    $totalPaidCount = (int)($r['count'] ?? 0);
+}
+
+$uName = isset($_SESSION['uName']) ? h((string)$_SESSION['uName']) : 'Admin';
+$hour = (int)date('H');
+$greeting = __('good_morning');
+if ($hour >= 12 && $hour < 18) {
+    $greeting = __('good_afternoon');
+} elseif ($hour >= 18 || $hour < 5) {
+    $greeting = __('good_evening');
+}
 ?>
 
 <div class="container-fluid py-4 px-md-4">

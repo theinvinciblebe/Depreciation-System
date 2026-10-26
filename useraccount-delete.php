@@ -1,18 +1,29 @@
 <?php
-include("head.php");
+declare(strict_types=1);
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+include_once("auth.php");
+include_once("connection.php");
 
-    $userid = (int)$_POST['userid'];
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $userid = isset($_POST['userid']) ? (int)$_POST['userid'] : 0;
+    $currentUid = isset($_SESSION['uid']) ? (int)$_SESSION['uid'] : 0;
 
-    $stmt = $conn->prepare("DELETE FROM tblusername WHERE userid = ?");
-    $stmt->bind_param("i", $userid);
+    // Prevent deleting own account to avoid being locked out
+    if ($userid > 0 && $userid !== $currentUid) {
+        $resPhoto = $conn->execute_query("SELECT Photo FROM tblusername WHERE userid = ? LIMIT 1", [$userid]);
+        if ($resPhoto && $row = $resPhoto->fetch_assoc()) {
+            $photo = (string)($row['Photo'] ?? '');
+            if ($photo !== '' && file_exists(__DIR__ . '/images/' . $photo)) {
+                @unlink(__DIR__ . '/images/' . $photo);
+            }
+        }
 
-    if ($stmt->execute()) {
-        header("Location: UserAccount.php");
-        exit();
-    } else {
-        echo "Delete failed: " . $conn->error;
+        $conn->execute_query("DELETE FROM tblusername WHERE userid = ?", [$userid]);
     }
+
+    header("Location: UserAccount.php?deleted=1");
+    exit();
 }
-?>
+
+header("Location: UserAccount.php");
+exit();

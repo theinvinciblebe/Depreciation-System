@@ -1,52 +1,71 @@
 <?php
-ob_start();
-include("Head.php");
-include("Navbar.php");
+declare(strict_types=1);
 
-if (isset($_POST['btnsave'])) {
-    $autoid = date('YmdHms');
-    $txtcusname = $_POST['txtcusname'];
-    $txttel = $_POST['txttel'];
-    $txtIDCard = $_POST['txtIDCard'];
-    $txtcusaddress = $_POST['txtcusaddress'];
-    $txtPname = $_POST['txtPname'];
-    $txtPprice = (float)$_POST['txtPprice'];
-    $txtInterest = (float)$_POST['txtInterest'];
-    $txtDurartion = (int)$_POST['txtDuration'];
+include_once("auth.php");
+include_once("connection.php");
+include_once("lang.php");
+
+$errorMsg = null;
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['btnsave'])) {
+    $autoid = (int)date('YmdHis');
+    $txtcusname = trim((string)($_POST['txtcusname'] ?? ''));
+    $txttel = trim((string)($_POST['txttel'] ?? ''));
+    $txtIDCard = trim((string)($_POST['txtIDCard'] ?? ''));
+    $txtcusaddress = trim((string)($_POST['txtcusaddress'] ?? ''));
+    $txtPname = trim((string)($_POST['txtPname'] ?? ''));
+    $txtPprice = max(0.0, (float)($_POST['txtPprice'] ?? 0));
+    $txtInterest = max(0.0, (float)($_POST['txtInterest'] ?? 0));
+    $txtDuration = max(0, (int)($_POST['txtDuration'] ?? 0));
     $Createdate = date('Y-m-d H:i:s');
-    $txtUserid = $_POST['txtuserid'];
+    $txtUserid = !empty($_POST['txtuserid']) ? (int)$_POST['txtuserid'] : (int)($_SESSION['uid'] ?? 1);
 
     $imgname = '';
-    if (!empty($_FILES['fileToUpload']['name'])) {
-        $uploaddir = getcwd() . '/images/';
-        $imgname = time() . '_' . basename($_FILES['fileToUpload']['name']);
-        $uploadfile = $uploaddir . $imgname;
-        move_uploaded_file($_FILES['fileToUpload']['tmp_name'], $uploadfile);
+    if (!empty($_FILES['fileToUpload']['name']) && $_FILES['fileToUpload']['error'] === UPLOAD_ERR_OK) {
+        $uploaddir = __DIR__ . '/images/';
+        if (!is_dir($uploaddir)) {
+            mkdir($uploaddir, 0755, true);
+        }
+        $ext = strtolower(pathinfo($_FILES['fileToUpload']['name'], PATHINFO_EXTENSION));
+        $allowed = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+        if (in_array($ext, $allowed, true)) {
+            $imgname = time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+            move_uploaded_file($_FILES['fileToUpload']['tmp_name'], $uploaddir . $imgname);
+        }
     }
 
-    $sql = "INSERT INTO tblcustomer (cusid, cusname, custel, IDCard, cusAddress, Photo, ProductName, ProductPrice, Interest, Duration, Create_Date, Userid)
-            VALUES ($autoid, '$txtcusname', '$txttel', '$txtIDCard', '$txtcusaddress', '$imgname', '$txtPname', '$txtPprice', '$txtInterest', '$txtDurartion', '$Createdate', '$txtUserid')";
+    try {
+        $insertCust = $conn->execute_query(
+            "INSERT INTO tblcustomer (cusid, cusname, custel, IDCard, cusAddress, Photo, ProductName, ProductPrice, Interest, Duration, Create_Date, Userid)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            [$autoid, $txtcusname, $txttel, $txtIDCard, $txtcusaddress, $imgname, $txtPname, $txtPprice, $txtInterest, $txtDuration, $Createdate, $txtUserid]
+        );
 
-    if ($conn->query($sql) === TRUE) {
-        if ($txtDurartion > 0) {
-            $principal = $txtPprice / $txtDurartion;
-            $interest_month = ($txtPprice * $txtInterest) / 100;
-            $date = date("Y-m-d");
+        if ($insertCust) {
+            if ($txtDuration > 0) {
+                $principal = round($txtPprice / $txtDuration, 2);
+                $interest_month = round(($txtPprice * $txtInterest) / 100, 2);
+                $baseDate = date("Y-m-d");
 
-            for ($i = 1; $i <= $txtDurartion; $i++) {
-                $post_date = date('Y-m-d', strtotime("+$i months", strtotime($date)));
-                $sqlDepre = "INSERT INTO tbldepreciation (cusid, Principal, interest_month, paid_Date, Clear_date, clear_by_userid)
-                             VALUES ($autoid, $principal, $interest_month, '$post_date', NULL, NULL)";
-                $conn->query($sqlDepre);
+                $stmtDepre = $conn->prepare("INSERT INTO tbldepreciation (cusid, Principal, Interest_Month, Paid_Date, Clear_Date, clear_by_userid) VALUES (?, ?, ?, ?, NULL, NULL)");
+                for ($i = 1; $i <= $txtDuration; $i++) {
+                    $post_date = date('Y-m-d 00:00:00', strtotime("+$i months", strtotime($baseDate)));
+                    $stmtDepre->bind_param("idds", $autoid, $principal, $interest_month, $post_date);
+                    $stmtDepre->execute();
+                }
             }
+            header('Location: customer.php');
+            exit();
+        } else {
+            $errorMsg = "Failed to insert customer: " . $conn->error;
         }
-        $conn->close();
-        header('Location: customer.php');
-        exit();
-    } else {
-        $errorMsg = "Error: " . $sql . "<br>" . $conn->error;
+    } catch (\Throwable $e) {
+        $errorMsg = "Database error: " . $e->getMessage();
     }
 }
+
+include_once("Head.php");
+include_once("Navbar.php");
 ?>
 
 <div class="container py-4">

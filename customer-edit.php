@@ -1,71 +1,88 @@
 <?php
-ob_start();
-include("Head.php");
-include("Navbar.php");
+declare(strict_types=1);
+
+include_once("auth.php");
+include_once("connection.php");
+include_once("lang.php");
 
 $param = isset($_GET['param']) ? (int)$_GET['param'] : 0;
-$sqlGet = "SELECT * FROM tblcustomer WHERE cusid = $param";
-$result = $conn->query($sqlGet);
-if ($result && $result->num_rows > 0) {
-    $row = $result->fetch_assoc();
-    $Getcusname = $row['cusname'];
-    $Getcutel = $row['custel'];
-    $GetIDCard = $row['IDCard'];
-    $GetcusAddress = $row['cusAddress'];
-    $GetcusPhoto = $row['Photo'];
-    $GetPName = $row['ProductName'];
-    $GetcPPrice = $row['ProductPrice'];
-    $GetcInterest = $row['Interest'];
-    $GetcDuration = $row['Duration'];
-    $GetCreate_Date = $row['Create_Date'];
-    $GetUserid = $row['Userid'];
+$result = $conn->execute_query("SELECT * FROM tblcustomer WHERE cusid = ? LIMIT 1", [$param]);
+
+if ($result && $row = $result->fetch_assoc()) {
+    $Getcusname = (string)($row['cusname'] ?? '');
+    $Getcutel = (string)($row['custel'] ?? '');
+    $GetIDCard = (string)($row['IDCard'] ?? '');
+    $GetcusAddress = (string)($row['cusAddress'] ?? '');
+    $GetcusPhoto = (string)($row['Photo'] ?? '');
+    $GetPName = (string)($row['ProductName'] ?? '');
+    $GetcPPrice = (string)($row['ProductPrice'] ?? '0');
+    $GetcInterest = (string)($row['Interest'] ?? '0');
+    $GetcDuration = (string)($row['Duration'] ?? '0');
+    $GetCreate_Date = (string)($row['Create_Date'] ?? '');
+    $GetUserid = (string)($row['Userid'] ?? '');
 } else {
     header('Location: customer.php');
     exit();
 }
 
-if (isset($_POST['btnsave'])) {
-    $txtcusname = $_POST['txtcusname'];
-    $txttel = $_POST['txttel'];
-    $txtIDCard = $_POST['txtIDCard'];
-    $txtcusaddress = $_POST['txtcusaddress'];
-    $txtPname = $_POST['txtPname'];
-    $txtPprice = (float)$_POST['txtPprice'];
-    $txtInterest = (float)$_POST['txtInterest'];
-    $txtDurartion = (int)$_POST['txtDuration'];
+$errorMsg = null;
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['btnsave'])) {
+    $txtcusname = trim((string)($_POST['txtcusname'] ?? ''));
+    $txttel = trim((string)($_POST['txttel'] ?? ''));
+    $txtIDCard = trim((string)($_POST['txtIDCard'] ?? ''));
+    $txtcusaddress = trim((string)($_POST['txtcusaddress'] ?? ''));
+    $txtPname = trim((string)($_POST['txtPname'] ?? ''));
+    $txtPprice = max(0.0, (float)($_POST['txtPprice'] ?? 0));
+    $txtInterest = max(0.0, (float)($_POST['txtInterest'] ?? 0));
+    $txtDuration = max(0, (int)($_POST['txtDuration'] ?? 0));
     $Createdate = date('Y-m-d H:i:s');
-    $txtUserid = $_POST['txtuserid'];
+    $txtUserid = !empty($_POST['txtuserid']) ? (int)$_POST['txtuserid'] : (int)($_SESSION['uid'] ?? 1);
 
     $imgname = $GetcusPhoto;
-    if (!empty($_FILES['fileToUpload']['name'])) {
-        $uploaddir = getcwd() . '/images/';
-        $imgname = time() . '_' . basename($_FILES['fileToUpload']['name']);
-        $uploadfile = $uploaddir . $imgname;
-        move_uploaded_file($_FILES['fileToUpload']['tmp_name'], $uploadfile);
+    if (!empty($_FILES['fileToUpload']['name']) && $_FILES['fileToUpload']['error'] === UPLOAD_ERR_OK) {
+        $uploaddir = __DIR__ . '/images/';
+        if (!is_dir($uploaddir)) {
+            mkdir($uploaddir, 0755, true);
+        }
+        $ext = strtolower(pathinfo($_FILES['fileToUpload']['name'], PATHINFO_EXTENSION));
+        $allowed = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+        if (in_array($ext, $allowed, true)) {
+            $imgname = time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+            move_uploaded_file($_FILES['fileToUpload']['tmp_name'], $uploaddir . $imgname);
+        }
     }
 
-    $sql = "UPDATE tblcustomer SET 
-                cusname = '$txtcusname',
-                custel = '$txttel',
-                IDCard = '$txtIDCard',
-                cusAddress = '$txtcusaddress',
-                Photo = '$imgname',
-                ProductName = '$txtPname',
-                ProductPrice = '$txtPprice',
-                Interest = '$txtInterest',
-                Duration = '$txtDurartion',
-                Create_Date = '$Createdate',
-                Userid = '$txtUserid'
-            WHERE cusid = $param";
+    try {
+        $updated = $conn->execute_query(
+            "UPDATE tblcustomer SET 
+                cusname = ?,
+                custel = ?,
+                IDCard = ?,
+                cusAddress = ?,
+                Photo = ?,
+                ProductName = ?,
+                ProductPrice = ?,
+                Interest = ?,
+                Duration = ?,
+                Create_Date = ?,
+                Userid = ?
+            WHERE cusid = ?",
+            [$txtcusname, $txttel, $txtIDCard, $txtcusaddress, $imgname, $txtPname, $txtPprice, $txtInterest, $txtDuration, $Createdate, $txtUserid, $param]
+        );
 
-    if ($conn->query($sql) === TRUE) {
-        $conn->close();
-        header('Location: customer.php');
-        exit();
-    } else {
-        $errorMsg = "Error: " . $sql . "<br>" . $conn->error;
+        if ($updated) {
+            header('Location: customer.php');
+            exit();
+        } else {
+            $errorMsg = "Failed to update: " . $conn->error;
+        }
+    } catch (\Throwable $e) {
+        $errorMsg = "Database error: " . $e->getMessage();
     }
 }
+
+include_once("Head.php");
+include_once("Navbar.php");
 ?>
 
 <div class="container py-4">

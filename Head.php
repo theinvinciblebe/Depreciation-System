@@ -1,10 +1,11 @@
 <?php
-include("auth.php");
-include("connection.php");
-include("lang.php");
+declare(strict_types=1);
+include_once("auth.php");
+include_once("connection.php");
+include_once("lang.php");
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo $current_lang; ?>">
+<html lang="<?php echo h($current_lang ?? 'en'); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">

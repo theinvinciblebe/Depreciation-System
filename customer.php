@@ -1,6 +1,7 @@
 <?php
-include("Head.php");
-include("Navbar.php");
+declare(strict_types=1);
+include_once("Head.php");
+include_once("Navbar.php");
 ?>
 
 <div class="container-fluid py-4 px-md-4">
@@ -40,8 +41,14 @@ include("Navbar.php");
                     if ($result && $result->num_rows > 0) {
                         $i = 1;
                         while ($row = $result->fetch_assoc()) {
-                            $photoFile = !empty($row['Photo']) ? 'images/' . htmlspecialchars($row['Photo']) : '';
-                            $hasPhoto = !empty($row['Photo']) && file_exists(dirname(__FILE__) . '/images/' . $row['Photo']);
+                            $rawPhoto = (string)($row['Photo'] ?? '');
+                            $photoFile = $rawPhoto !== '' ? 'images/' . h($rawPhoto) : '';
+                            $hasPhoto = $rawPhoto !== '' && file_exists(__DIR__ . '/images/' . $rawPhoto);
+                            $cusId = (string)($row['cusid'] ?? '');
+                            $cusName = (string)($row['cusname'] ?? '');
+                            $cusTel = (string)($row['custel'] ?? '');
+                            $productName = (string)($row['ProductName'] ?? '');
+                            $productPrice = (float)($row['ProductPrice'] ?? 0);
                             ?>
                             <tr align="center">
                                 <td class="fw-bold text-muted"><?php echo $i++; ?></td>
@@ -55,30 +62,30 @@ include("Navbar.php");
                                     <?php } ?>
                                 </td>
                                 <td class="text-start">
-                                    <a href="depreciation.php?param=<?php echo $row['cusid']; ?>" class="fw-bold text-decoration-none d-flex align-items-center gap-2" title="<?php echo __('view_schedule'); ?>">
-                                        <span class="text-primary"><?php echo htmlspecialchars($row['cusname']); ?></span>
+                                    <a href="depreciation.php?param=<?php echo urlencode($cusId); ?>" class="fw-bold text-decoration-none d-flex align-items-center gap-2" title="<?php echo __('view_schedule'); ?>">
+                                        <span class="text-primary"><?php echo h($cusName); ?></span>
                                         <i class="fa-solid fa-arrow-up-right-from-square fa-xs text-muted"></i>
                                     </a>
-                                    <small class="text-muted d-block">ID: #<?php echo htmlspecialchars($row['cusid']); ?></small>
+                                    <small class="text-muted d-block">ID: #<?php echo h($cusId); ?></small>
                                 </td>
                                 <td>
                                     <span class="badge bg-light text-dark border px-2 py-1">
-                                        <i class="fa-solid fa-phone fa-xs text-muted me-1"></i><?php echo htmlspecialchars($row['custel']); ?>
+                                        <i class="fa-solid fa-phone fa-xs text-muted me-1"></i><?php echo h($cusTel); ?>
                                     </span>
                                 </td>
                                 <td>
-                                    <span class="fw-semibold"><?php echo htmlspecialchars($row['ProductName']); ?></span>
+                                    <span class="fw-semibold"><?php echo h($productName); ?></span>
                                 </td>
                                 <td>
-                                    <span class="fw-bold text-success">$<?php echo number_format((float)$row['ProductPrice'], 2); ?></span>
+                                    <span class="fw-bold text-success">$<?php echo number_format($productPrice, 2); ?></span>
                                 </td>
                                 <td>
                                     <div class="d-inline-flex align-items-center gap-2">
-                                        <a href="customer-edit.php?param=<?php echo $row['cusid']; ?>" class="btn btn-sm btn-outline-primary" title="<?php echo __('edit'); ?>">
+                                        <a href="customer-edit.php?param=<?php echo urlencode($cusId); ?>" class="btn btn-sm btn-outline-primary" title="<?php echo __('edit'); ?>">
                                             <i class="fa-solid fa-pen-to-square"></i>
                                         </a>
                                         <form action="customer-delete.php" method="POST" class="d-inline m-0">
-                                            <input type="hidden" name="cusid" value="<?php echo $row['cusid']; ?>">
+                                            <input type="hidden" name="cusid" value="<?php echo h($cusId); ?>">
                                             <button type="submit" class="btn btn-sm btn-outline-danger delete-btn" title="<?php echo __('delete'); ?>">
                                                 <i class="fa-solid fa-trash-can"></i>
                                             </button>
@@ -104,7 +111,6 @@ include("Navbar.php");
                         </tr>
                         <?php
                     }
-                    $conn->close();
                     ?>
                     </tbody>
                 </table>

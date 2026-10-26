@@ -1,23 +1,20 @@
 <?php
-    include("auth.php");
-    include("connection.php");
+declare(strict_types=1);
 
-    $Depreid = $_GET['Depreid'];
-    $cusid = $_GET['cusid'];
-    
-    $date = date("Y-m-d H:i");
-    
-    $sql = "UPDATE tbldepreciation SET 
-    Clear_Date ='".$date."' ,  clear_by_userid = -2 WHERE Depreid = $Depreid";
+include_once("auth.php");
+include_once("connection.php");
 
-    if ($conn->query($sql) === TRUE) {
-        //echo "New record created successfully";
+$Depreid = isset($_GET['Depreid']) ? (int)$_GET['Depreid'] : 0;
+$cusid = isset($_GET['cusid']) ? (int)$_GET['cusid'] : 0;
+$userId = isset($_SESSION['uid']) ? (int)$_SESSION['uid'] : -2;
 
-        header('Location: depreciation.php?param='.$cusid);
-        exit();
-    } else {
-        echo "Error: " . $sql . "<br>" . $conn->error;
-    }
-    
-    $conn->close();
- 
+if ($Depreid > 0) {
+    $now = date("Y-m-d H:i:s");
+    $conn->execute_query(
+        "UPDATE tbldepreciation SET Clear_Date = ?, clear_by_userid = ? WHERE Depreid = ?",
+        [$now, $userId, $Depreid]
+    );
+}
+
+header('Location: depreciation.php?param=' . $cusid);
+exit();

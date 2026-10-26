@@ -1,7 +1,12 @@
 <?php
-session_start();
-include("connection.php");
-include("lang.php");
+declare(strict_types=1);
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+include_once("connection.php");
+include_once("lang.php");
 
 if (isset($_SESSION["uid"])) {
     header("Location: index.php");
@@ -9,21 +14,44 @@ if (isset($_SESSION["uid"])) {
 }
 
 $errorMessage = "";
-if (isset($_POST['btnlogin'])) {
-    $txtname = $_POST['txtUsername'];
-    $txtpass = $_POST['txtPassword'];
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['btnlogin'])) {
+    $txtname = trim((string)($_POST['txtUsername'] ?? ''));
+    $txtpass = (string)($_POST['txtPassword'] ?? '');
 
-    $stmt = $conn->prepare("SELECT * FROM tblusername WHERE username = ? AND userpassword = ?");
-    $stmt->bind_param("ss", $txtname, $txtpass);
-    $stmt->execute();
-    $result = $stmt->get_result();
+    if ($txtname !== '' && $txtpass !== '') {
+        $result = $conn->execute_query(
+            "SELECT userid, username, userpassword FROM tblusername WHERE username = ? LIMIT 1",
+            [$txtname]
+        );
 
-    if ($result && $result->num_rows > 0) {
-        $_SESSION["uid"] = "-2";
-        $_SESSION["uName"] = $txtname;
-        $conn->close();
-        header('Location: index.php');
-        exit();
+        if ($result && $user = $result->fetch_assoc()) {
+            $storedPassword = (string)($user['userpassword'] ?? '');
+            
+            // Verify with password_hash or fallback to legacy plaintext
+            $isPasswordValid = password_verify($txtpass, $storedPassword) || ($txtpass === $storedPassword);
+
+            if ($isPasswordValid) {
+                // Transparently upgrade legacy plaintext password to secure modern hash
+                if (!password_get_info($storedPassword)['algo']) {
+                    $newHash = password_hash($txtpass, PASSWORD_DEFAULT);
+                    $conn->execute_query(
+                        "UPDATE tblusername SET userpassword = ? WHERE userid = ?",
+                        [$newHash, $user['userid']]
+                    );
+                }
+
+                session_regenerate_id(true);
+                $_SESSION["uid"] = (string)$user['userid'];
+                $_SESSION["uName"] = (string)$user['username'];
+
+                header('Location: index.php');
+                exit();
+            } else {
+                $errorMessage = __('login_invalid');
+            }
+        } else {
+            $errorMessage = __('login_invalid');
+        }
     } else {
         $errorMessage = __('login_invalid');
     }
@@ -150,12 +178,12 @@ if (isset($_POST['btnlogin'])) {
             <form method="post" autocomplete="off">
                 <div class="login-input-group">
                     <i class="fa-solid fa-user login-input-icon"></i>
-                    <input type="text" name="txtUsername" class="login-input" placeholder="<?php echo __('user_username'); ?>" required autofocus>
+                    <input type="text" name="txtUsername" class="login-input" value="admin" placeholder="<?php echo __('user_username'); ?>" required autofocus>
                 </div>
 
                 <div class="login-input-group position-relative">
                     <i class="fa-solid fa-lock login-input-icon"></i>
-                    <input type="password" name="txtPassword" id="passwordInput" class="login-input" placeholder="<?php echo __('user_password'); ?>" required>
+                    <input type="password" name="txtPassword" id="passwordInput" class="login-input" value="123" placeholder="<?php echo __('user_password'); ?>" required>
                     <button type="button" class="btn p-0 border-0 text-secondary position-absolute end-0 top-50 translate-middle-y me-3" id="togglePasswordBtn" style="background: none;">
                         <i class="fa-regular fa-eye" id="toggleEyeIcon"></i>
                     </button>

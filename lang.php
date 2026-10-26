@@ -1,18 +1,20 @@
 <?php
+declare(strict_types=1);
+
 // Multi-language system: English (en) and Khmer (kh)
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
 // Check if language switch is requested via GET
-if (isset($_GET['lang']) && in_array($_GET['lang'], ['en', 'kh'])) {
+if (isset($_GET['lang']) && is_string($_GET['lang']) && in_array($_GET['lang'], ['en', 'kh'], true)) {
     $_SESSION['lang'] = $_GET['lang'];
     setcookie('lang', $_GET['lang'], time() + (86400 * 30), "/");
 }
 
 // Determine active language
-$current_lang = isset($_SESSION['lang']) ? $_SESSION['lang'] : (isset($_COOKIE['lang']) ? $_COOKIE['lang'] : 'en');
-if (!in_array($current_lang, ['en', 'kh'])) {
+$current_lang = (string)($_SESSION['lang'] ?? ($_COOKIE['lang'] ?? 'en'));
+if (!in_array($current_lang, ['en', 'kh'], true)) {
     $current_lang = 'en';
 }
 
@@ -452,21 +454,27 @@ $translations = [
 ];
 
 // Helper translation function
-function __($key, $default = null) {
+function __(?string $key, ?string $default = null): string {
     global $translations, $current_lang;
-    if (isset($translations[$current_lang][$key])) {
-        return $translations[$current_lang][$key];
+    $safeKey = $key ?? '';
+    $lang = (string)($current_lang ?? 'en');
+    if (isset($translations[$lang][$safeKey])) {
+        return (string)$translations[$lang][$safeKey];
     }
-    if (isset($translations['en'][$key])) {
-        return $translations['en'][$key];
+    if (isset($translations['en'][$safeKey])) {
+        return (string)$translations['en'][$safeKey];
     }
-    return $default !== null ? $default : $key;
+    return $default !== null ? $default : $safeKey;
 }
 
 // Helper to construct language switch URL preserving query parameters
-function getLangUrl($target_lang) {
+function getLangUrl(string $target_lang): string {
     $params = $_GET;
     $params['lang'] = $target_lang;
-    $baseUrl = strtok($_SERVER["REQUEST_URI"], '?');
-    return htmlspecialchars($baseUrl . '?' . http_build_query($params));
+    $requestUri = (string)($_SERVER["REQUEST_URI"] ?? '');
+    $baseUrl = strtok($requestUri, '?');
+    if ($baseUrl === false) {
+        $baseUrl = '';
+    }
+    return htmlspecialchars($baseUrl . '?' . http_build_query($params), ENT_QUOTES, 'UTF-8');
 }

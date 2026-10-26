@@ -1,6 +1,7 @@
 <?php
-include("Head.php");
-include("Navbar.php");
+declare(strict_types=1);
+include_once("Head.php");
+include_once("Navbar.php");
 ?>
 
 <div class="container-fluid py-4 px-md-4">
@@ -39,8 +40,11 @@ include("Navbar.php");
                     if ($result && $result->num_rows > 0) {
                         $i = 1;
                         while ($row = $result->fetch_assoc()) {
-                            $photoFile = !empty($row['Photo']) ? 'images/' . htmlspecialchars($row['Photo']) : '';
-                            $hasPhoto = !empty($row['Photo']) && file_exists(dirname(__FILE__) . '/images/' . $row['Photo']);
+                            $rawPhoto = (string)($row['Photo'] ?? '');
+                            $photoFile = $rawPhoto !== '' ? 'images/' . h($rawPhoto) : '';
+                            $hasPhoto = $rawPhoto !== '' && file_exists(__DIR__ . '/images/' . $rawPhoto);
+                            $userId = (string)($row['userid'] ?? '');
+                            $username = (string)($row['username'] ?? '');
                             ?>
                             <tr align="center">
                                 <td class="fw-bold text-muted"><?php echo $i++; ?></td>
@@ -54,12 +58,12 @@ include("Navbar.php");
                                     <?php } ?>
                                 </td>
                                 <td class="text-start">
-                                    <span class="fw-bold text-primary"><?php echo htmlspecialchars($row['username']); ?></span>
+                                    <span class="fw-bold text-primary"><?php echo h($username); ?></span>
                                     <span class="badge bg-primary-subtle text-primary border border-primary-subtle ms-2"><?php echo __('admin'); ?></span>
                                 </td>
                                 <td>
                                     <span class="badge bg-light text-secondary border px-2 py-1">
-                                        #<?php echo htmlspecialchars($row['userid']); ?>
+                                        #<?php echo h($userId); ?>
                                     </span>
                                 </td>
                                 <td>
@@ -67,11 +71,11 @@ include("Navbar.php");
                                 </td>
                                 <td>
                                     <div class="d-inline-flex align-items-center gap-2">
-                                        <a href="useraccount-edit.php?param=<?php echo $row['userid']; ?>" class="btn btn-sm btn-outline-primary" title="<?php echo __('edit'); ?>">
+                                        <a href="useraccount-edit.php?param=<?php echo urlencode($userId); ?>" class="btn btn-sm btn-outline-primary" title="<?php echo __('edit'); ?>">
                                             <i class="fa-solid fa-pen-to-square"></i>
                                         </a>
                                         <form action="useraccount-delete.php" method="POST" class="d-inline m-0">
-                                            <input type="hidden" name="userid" value="<?php echo $row['userid']; ?>">
+                                            <input type="hidden" name="userid" value="<?php echo h($userId); ?>">
                                             <button type="submit" class="btn btn-sm btn-outline-danger delete-btn" title="<?php echo __('delete'); ?>">
                                                 <i class="fa-solid fa-trash-can"></i>
                                             </button>
@@ -96,7 +100,6 @@ include("Navbar.php");
                         </tr>
                         <?php
                     }
-                    $conn->close();
                     ?>
                     </tbody>
                 </table>

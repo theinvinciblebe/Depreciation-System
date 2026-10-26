@@ -1,18 +1,16 @@
 <?php
-    include("Head.php");
+declare(strict_types=1);
 
+include_once("Head.php");
 ?>
 
 <div class="limiter">
-<!-- <div class="container"> -->
     <?php
-        include("navbar.php");
-        include("dashboard.php");
+        include_once("Navbar.php");
+        include_once("dashboard.php");
     ?>
-
 </div>
 
-
 <?php
-    include("footer.php");
+include_once("footer.php");
 ?>
