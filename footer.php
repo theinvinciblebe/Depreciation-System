@@ -1,3 +1,46 @@
+<?php
+// Ensure language file is loaded
+if (!function_exists('__')) {
+    include_once("lang.php");
+}
+?>
+
+<!-- Modern Responsive Sticky Footer -->
+<footer class="modern-footer mt-auto">
+    <div class="container-fluid py-3 px-3 px-md-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+            <div class="footer-brand d-flex align-items-center gap-2">
+                <span class="brand-icon footer-mini-icon">
+                    <i class="fa-solid fa-chart-pie"></i>
+                </span>
+                <span class="fw-bold" style="font-size: 0.95rem;">Depre<span style="color: #4f46e5;">Sys</span></span>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5 ms-1" style="font-size: 0.72rem;">v2.0</span>
+                <span class="text-muted d-none d-sm-inline ms-2 small">&copy; <?php echo date('Y'); ?> <?php echo __('app_subtitle'); ?></span>
+            </div>
+            <div class="footer-links d-flex flex-wrap justify-content-center align-items-center gap-3 small">
+                <a href="index.php" class="text-secondary text-decoration-none hover-primary">
+                    <i class="fa-solid fa-house me-1"></i><?php echo __('nav_dashboard'); ?>
+                </a>
+                <span class="text-muted opacity-50">&bull;</span>
+                <a href="customer.php" class="text-secondary text-decoration-none hover-primary">
+                    <i class="fa-solid fa-users me-1"></i><?php echo __('nav_customer_list'); ?>
+                </a>
+                <span class="text-muted opacity-50">&bull;</span>
+                <a href="report_1.php" class="text-secondary text-decoration-none hover-primary">
+                    <i class="fa-solid fa-chart-line me-1"></i><?php echo __('nav_reports'); ?>
+                </a>
+                <span class="text-muted opacity-50">&bull;</span>
+                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1">
+                    <i class="fa-solid fa-circle fa-2xs me-1"></i><?php echo __('dash_sys_online'); ?>
+                </span>
+            </div>
+        </div>
+        <div class="text-center d-sm-none text-muted small mt-2">
+            &copy; <?php echo date('Y'); ?> <?php echo __('app_subtitle'); ?>
+        </div>
+    </div>
+</footer>
+
 <!-- Footer Scripts & Theme Controller -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
