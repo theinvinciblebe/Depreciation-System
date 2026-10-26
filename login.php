@@ -184,7 +184,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['btnlogin'])) {
                 <div class="login-input-group position-relative">
                     <i class="fa-solid fa-lock login-input-icon"></i>
                     <input type="password" name="txtPassword" id="passwordInput" class="login-input" value="123" placeholder="<?php echo __('user_password'); ?>" required>
-                    <button type="button" class="btn p-0 border-0 text-secondary position-absolute end-0 top-50 translate-middle-y me-3" id="togglePasswordBtn" style="background: none;">
+                    <button type="button" class="btn p-0 border-0 position-absolute end-0 top-50 translate-middle-y me-3 login-eye-btn" id="togglePasswordBtn" style="background: none;" aria-label="Toggle password visibility">
                         <i class="fa-regular fa-eye" id="toggleEyeIcon"></i>
                     </button>
                 </div>
@@ -192,11 +192,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['btnlogin'])) {
                 <div class="d-flex align-items-center justify-content-between mb-4">
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="rememberMe">
-                        <label class="form-check-label text-light small" for="rememberMe">
+                        <label class="form-check-label small" for="rememberMe" style="color: var(--text-secondary); cursor: pointer;">
                             <?php echo __('login_remember'); ?>
                         </label>
                     </div>
-                    <a href="#" class="small text-decoration-none" style="color: #818cf8;" onclick="alert('Please contact your administrator.'); return false;">
+                    <a href="#" class="small text-decoration-none login-forgot-link" onclick="alert('Please contact your administrator.'); return false;">
                         <?php echo __('login_forgot'); ?>
                     </a>
                 </div>
@@ -254,6 +254,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['btnlogin'])) {
                     document.documentElement.classList.remove('dark');
                     localStorage.setItem('theme', 'light');
                 }
+
+                var checkboxes = document.querySelectorAll('input#checkbox, input[type="checkbox"].theme-checkbox, .theme-switch input[type="checkbox"]');
+                checkboxes.forEach(function(cb) {
+                    cb.checked = isDark;
+                });
 
                 var toggles = document.querySelectorAll('.tailwind-theme-toggle, [role="switch"]#themeToggleBtn');
                 toggles.forEach(function(btn) {
