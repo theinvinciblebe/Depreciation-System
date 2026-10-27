@@ -13,20 +13,23 @@ if (session_status() === PHP_SESSION_NONE) {
 // -------------------------------------------------------------
 // 1. Database Configuration
 // -------------------------------------------------------------
-$servername = "localhost";
-$username   = "root";
-$password   = "";
-$dbname     = "db_depreciation";
-$charset    = "utf8mb4";
+$dbUrl = $_ENV['DATABASE_URL'] ?? getenv('DATABASE_URL') ?: ($_ENV['MYSQL_URL'] ?? getenv('MYSQL_URL') ?: '');
 
-$connFile = __DIR__ . '/connection.php';
-if (file_exists($connFile)) {
-    $content = file_get_contents($connFile);
-    if (preg_match('/\$servername\s*=\s*["\']([^"\']+)["\']/', $content, $m)) $servername = $m[1];
-    if (preg_match('/\$username\s*=\s*["\']([^"\']*)["\']/', $content, $m))   $username = $m[1];
-    if (preg_match('/\$password\s*=\s*["\']([^"\']*)["\']/', $content, $m))   $password = $m[1];
-    if (preg_match('/\$dbname\s*=\s*["\']([^"\']+)["\']/', $content, $m))     $dbname = $m[1];
+if (!empty($dbUrl)) {
+    $parsed = parse_url($dbUrl);
+    $servername = $parsed['host'] ?? 'localhost';
+    $username   = isset($parsed['user']) ? urldecode($parsed['user']) : 'root';
+    $password   = isset($parsed['pass']) ? urldecode($parsed['pass']) : '';
+    $dbname     = isset($parsed['path']) ? ltrim(urldecode($parsed['path']), '/') : 'db_depreciation';
+    $port       = isset($parsed['port']) ? (int)$parsed['port'] : 3306;
+} else {
+    $servername = $_ENV['DB_HOST'] ?? getenv('DB_HOST') ?: ($_ENV['DB_SERVER'] ?? getenv('DB_SERVER') ?: ($_ENV['MYSQL_HOST'] ?? getenv('MYSQL_HOST') ?: 'localhost'));
+    $username   = $_ENV['DB_USER'] ?? getenv('DB_USER') ?: ($_ENV['DB_USERNAME'] ?? getenv('DB_USERNAME') ?: ($_ENV['MYSQL_USER'] ?? getenv('MYSQL_USER') ?: 'root'));
+    $password   = $_ENV['DB_PASSWORD'] ?? (getenv('DB_PASSWORD') !== false ? getenv('DB_PASSWORD') : ($_ENV['MYSQL_PASSWORD'] ?? (getenv('MYSQL_PASSWORD') !== false ? getenv('MYSQL_PASSWORD') : '')));
+    $dbname     = $_ENV['DB_NAME'] ?? getenv('DB_NAME') ?: ($_ENV['DB_DATABASE'] ?? getenv('DB_DATABASE') ?: ($_ENV['MYSQL_DATABASE'] ?? getenv('MYSQL_DATABASE') ?: 'db_depreciation'));
+    $port       = (int)($_ENV['DB_PORT'] ?? getenv('DB_PORT') ?: ($_ENV['MYSQL_PORT'] ?? getenv('MYSQL_PORT') ?: 3306));
 }
+$charset    = "utf8mb4";
 
 $isCli = (php_sapi_name() === 'cli');
 $migrationsDir = __DIR__ . '/migrations';
@@ -42,20 +45,25 @@ class MigrationManager {
     private string $dbname;
     private string $migrationsDir;
 
-    public function __construct(string $host, string $user, string $pass, string $dbname, string $charset, string $migrationsDir) {
+    public function __construct(string $host, string $user, string $pass, string $dbname, string $charset, string $migrationsDir, int $port = 3306) {
         $this->dbname = $dbname;
         $this->migrationsDir = $migrationsDir;
 
-        // Connect to server (without DB selection initially)
-        $this->pdo = new PDO("mysql:host={$host};charset={$charset}", $user, $pass, [
+        $pdoOptions = [
             PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::MYSQL_ATTR_MULTI_STATEMENTS => true,
-        ]);
+        ];
 
-        // Ensure database exists
-        $this->pdo->exec("CREATE DATABASE IF NOT EXISTS `{$this->dbname}` CHARACTER SET {$charset} COLLATE {$charset}_unicode_ci;");
-        $this->pdo->exec("USE `{$this->dbname}`;");
+        // First attempt: Connect directly to database (crucial for cloud DBs like TiDB, Aiven, Supabase where CREATE DATABASE may be restricted)
+        try {
+            $this->pdo = new PDO("mysql:host={$host};port={$port};dbname={$dbname};charset={$charset}", $user, $pass, $pdoOptions);
+        } catch (PDOException $e) {
+            // Second attempt: Connect without dbname and create database (typical for local development)
+            $this->pdo = new PDO("mysql:host={$host};port={$port};charset={$charset}", $user, $pass, $pdoOptions);
+            $this->pdo->exec("CREATE DATABASE IF NOT EXISTS `{$this->dbname}` CHARACTER SET {$charset} COLLATE {$charset}_unicode_ci;");
+            $this->pdo->exec("USE `{$this->dbname}`;");
+        }
 
         // Ensure migrations tracking table exists
         $this->pdo->exec("
@@ -215,7 +223,7 @@ class MigrationManager {
 // -------------------------------------------------------------
 if ($isCli) {
     try {
-        $manager = new MigrationManager($servername, $username, $password, $dbname, $charset, $migrationsDir);
+        $manager = new MigrationManager($servername, $username, $password, $dbname, $charset, $migrationsDir, $port);
         $command = $argv[1] ?? 'run';
 
         echo "\n\033[1;34m=== DepreSys Database Migration Tool ===\033[0m\n";
@@ -320,7 +328,7 @@ if (empty($_SESSION['migrate_csrf'])) {
 }
 
 try {
-    $manager = new MigrationManager($servername, $username, $password, $dbname, $charset, $migrationsDir);
+    $manager = new MigrationManager($servername, $username, $password, $dbname, $charset, $migrationsDir, $port);
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $submittedCsrf = (string)($_POST['csrf_token'] ?? '');

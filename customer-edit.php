@@ -42,13 +42,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['btnsave'])) {
     if (!empty($_FILES['fileToUpload']['name']) && $_FILES['fileToUpload']['error'] === UPLOAD_ERR_OK) {
         $uploaddir = __DIR__ . '/images/';
         if (!is_dir($uploaddir)) {
-            mkdir($uploaddir, 0755, true);
+            @mkdir($uploaddir, 0755, true);
         }
         $ext = strtolower(pathinfo($_FILES['fileToUpload']['name'], PATHINFO_EXTENSION));
         $allowed = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
         if (in_array($ext, $allowed, true)) {
-            $imgname = time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
-            move_uploaded_file($_FILES['fileToUpload']['tmp_name'], $uploaddir . $imgname);
+            $candidateName = time() . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+            if (@move_uploaded_file($_FILES['fileToUpload']['tmp_name'], $uploaddir . $candidateName)) {
+                $imgname = $candidateName;
+            }
         }
     }
 

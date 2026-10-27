@@ -170,5 +170,14 @@ Then visit `http://localhost:8000/login.php`.
 
 ---
 
+## ☁️ Cloud & Vercel Deployment
+
+DepreSys is fully prepared for zero-configuration serverless deployment on **Vercel** with stateless signed session persistence and cloud MySQL connectivity.
+
+For the step-by-step guide on deploying to Vercel and connecting a free cloud database (Aiven / TiDB / PlanetScale), see **[VERCEL_DEPLOYMENT.md](file:///d:/laragon/www/depre_system/VERCEL_DEPLOYMENT.md)**.
+
+---
+
 ## 📄 License
 This project is open-source and available under the [MIT License](LICENSE).
+
