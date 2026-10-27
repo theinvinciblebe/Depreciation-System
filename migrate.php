@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+error_reporting(E_ALL & ~E_DEPRECATED);
+
 /**
  * DepreSys - Database Migration & Initialization Engine
  * Supports both CLI (php migrate.php) and Modern Web Interface.
@@ -49,10 +51,14 @@ class MigrationManager {
         $this->dbname = $dbname;
         $this->migrationsDir = $migrationsDir;
 
+        $multiStatementsAttr = defined('Pdo\Mysql::ATTR_MULTI_STATEMENTS')
+            ? constant('Pdo\Mysql::ATTR_MULTI_STATEMENTS')
+            : (defined('PDO::MYSQL_ATTR_MULTI_STATEMENTS') ? constant('PDO::MYSQL_ATTR_MULTI_STATEMENTS') : 1013);
+
         $pdoOptions = [
             PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::MYSQL_ATTR_MULTI_STATEMENTS => true,
+            $multiStatementsAttr         => true,
         ];
 
         // First attempt: Connect directly to database (crucial for cloud DBs like TiDB, Aiven, Supabase where CREATE DATABASE may be restricted)

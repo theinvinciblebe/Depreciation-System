@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 // 1. Output buffering to prevent premature header flushing during session write or redirects
 ob_start();
+error_reporting(E_ALL & ~E_DEPRECATED);
 
 // 2. Set root project directory as current working directory and include path
 $rootDir = realpath(__DIR__ . '/..');
