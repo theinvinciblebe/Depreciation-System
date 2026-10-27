@@ -50,7 +50,7 @@ $userInitial = strtoupper(substr($rawUserName !== '' ? $rawUserName : 'U', 0, 1)
         </a>
       </div>
 
-      <!-- Single Theme Toggle Button (Copied styling from rbp-portfolio.vercel.app) -->
+      <!-- Single Theme Toggle Button -->
       <button type="button" 
               class="tailwind-theme-toggle focus-ring" 
               id="themeToggleBtn"
