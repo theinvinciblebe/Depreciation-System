@@ -10,7 +10,7 @@ include_once("Navbar.php");
             <div>
                 <h3 class="card-title mb-0">
                     <i class="fa-solid fa-user-shield text-primary me-2"></i><?php echo __('user_title'); ?>
-                </h3>
+                </h3><br>
                 <small class="text-muted"><?php echo __('user_subtitle'); ?></small>
             </div>
             <div>

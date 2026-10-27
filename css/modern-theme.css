@@ -378,183 +378,150 @@ body.dark-mode .modern-navbar .nav-link:hover {
 }
 
 /* ==========================================================================
-   Tailwind-Style Dark / White Theme Toggle
+   Single Theme Toggle Button (Copied styling from rbp-portfolio.vercel.app)
    ========================================================================== */
 .tailwind-theme-toggle {
     position: relative;
     display: inline-flex;
     align-items: center;
-    width: 58px;
-    height: 30px;
-    padding: 3px;
-    border-radius: var(--radius-full);
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 9999px;
+    background-color: var(--bg-surface, #ffffff);
+    color: var(--text-main, #0a0a0a);
+    border: 1px solid rgba(10, 10, 10, 0.08);
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
     cursor: pointer;
-    border: 1px solid #cbd5e1;
-    background: #f1f5f9;
-    box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
-    transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-                border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-                box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-                transform 0.15s ease;
+    transition: background-color 0.25s ease, 
+                border-color 0.25s ease, 
+                box-shadow 0.25s ease, 
+                transform 0.15s ease, 
+                color 0.25s ease;
+    padding: 0;
+    margin: 0;
     outline: none;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
-    margin: 0;
     vertical-align: middle;
 }
 
 .tailwind-theme-toggle:hover {
-    border-color: #94a3b8;
-    transform: scale(1.02);
+    background-color: rgba(10, 10, 10, 0.04);
+    border-color: rgba(10, 10, 10, 0.15);
+    transform: scale(1.04);
 }
 
 .tailwind-theme-toggle:active {
-    transform: scale(0.96);
+    transform: scale(0.95);
 }
 
-.tailwind-theme-toggle:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 2px var(--bg-surface), 0 0 0 4px #6366f1;
+.tailwind-theme-toggle:focus-visible,
+.tailwind-theme-toggle.focus-ring:focus-visible {
+    outline: 2px solid #6366f1;
+    outline-offset: 2px;
 }
 
-/* Track background stationary indicator icons */
-.tailwind-theme-toggle .toggle-track-icon {
-    position: absolute;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 14px;
-    height: 14px;
-    pointer-events: none;
-    transition: opacity 0.25s ease, transform 0.25s ease, color 0.25s ease;
-    z-index: 1;
-}
-
-.tailwind-theme-toggle .toggle-track-icon svg {
-    width: 100%;
-    height: 100%;
-    display: block;
-}
-
-.tailwind-theme-toggle .track-sun {
-    left: 8px;
-    color: #f59e0b;
-    opacity: 0.35;
-}
-
-.tailwind-theme-toggle .track-moon {
-    right: 8px;
-    color: #64748b;
-    opacity: 0.7;
-}
-
-/* Sliding Knob (Thumb) */
-.tailwind-theme-toggle .toggle-thumb {
+.tailwind-theme-toggle .theme-toggle-icon-wrap {
     position: relative;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 22px;
-    height: 22px;
-    border-radius: var(--radius-full);
-    background: #ffffff;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.18), 0 1px 2px -1px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.04);
-    transform: translateX(0);
-    transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1),
-                background-color 0.25s ease,
-                box-shadow 0.25s ease;
-    z-index: 2;
+    width: 17px;
+    height: 17px;
+    pointer-events: none;
 }
 
-/* Center Icons inside the Knob */
-.tailwind-theme-toggle .thumb-icon {
+.tailwind-theme-toggle .lucide-icon {
     position: absolute;
     inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: opacity 0.2s ease, transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+    width: 100%;
+    height: 100%;
+    stroke: currentColor;
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), 
+                opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.tailwind-theme-toggle .thumb-icon svg {
-    width: 13px;
-    height: 13px;
-    display: block;
-}
-
-/* Light mode thumb state */
-.tailwind-theme-toggle .sun-icon {
-    color: #d97706;
+/* Light mode defaults: Sun is visible, Moon is hidden & rotated */
+.tailwind-theme-toggle .lucide-sun {
     opacity: 1;
     transform: rotate(0deg) scale(1);
+    color: #0a0a0a;
 }
 
-.tailwind-theme-toggle .moon-icon {
-    color: #6366f1;
+.tailwind-theme-toggle .lucide-moon {
     opacity: 0;
-    transform: rotate(-90deg) scale(0.35);
+    transform: rotate(90deg) scale(0);
+    color: #fafafa;
 }
 
-/* ==========================================================================
-   Dark Mode Active Styles (Triggered via body.dark-mode or [data-bs-theme="dark"])
-   ========================================================================== */
+/* Dark Mode Active Styles */
 body.dark-mode .tailwind-theme-toggle,
 [data-bs-theme="dark"] .tailwind-theme-toggle,
 html.dark .tailwind-theme-toggle,
 .tailwind-theme-toggle[aria-checked="true"] {
-    background: #1e1b4b;
-    border-color: #4f46e5;
-    box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.4), 0 0 12px rgba(99, 102, 241, 0.35);
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #fafafa;
+    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
 }
 
 body.dark-mode .tailwind-theme-toggle:hover,
 [data-bs-theme="dark"] .tailwind-theme-toggle:hover,
 html.dark .tailwind-theme-toggle:hover,
 .tailwind-theme-toggle[aria-checked="true"]:hover {
-    border-color: #6366f1;
-    box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.4), 0 0 18px rgba(99, 102, 241, 0.55);
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
-body.dark-mode .tailwind-theme-toggle .track-sun,
-[data-bs-theme="dark"] .tailwind-theme-toggle .track-sun,
-html.dark .tailwind-theme-toggle .track-sun,
-.tailwind-theme-toggle[aria-checked="true"] .track-sun {
-    opacity: 0.75;
-    color: #fbbf24;
-}
-
-body.dark-mode .tailwind-theme-toggle .track-moon,
-[data-bs-theme="dark"] .tailwind-theme-toggle .track-moon,
-html.dark .tailwind-theme-toggle .track-moon,
-.tailwind-theme-toggle[aria-checked="true"] .track-moon {
-    opacity: 0.25;
-    color: #818cf8;
-}
-
-body.dark-mode .tailwind-theme-toggle .toggle-thumb,
-[data-bs-theme="dark"] .tailwind-theme-toggle .toggle-thumb,
-html.dark .tailwind-theme-toggle .toggle-thumb,
-.tailwind-theme-toggle[aria-checked="true"] .toggle-thumb {
-    transform: translateX(28px);
-    background: #0f172a;
-    box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(99, 102, 241, 0.6), 0 0 10px rgba(99, 102, 241, 0.45);
-}
-
-body.dark-mode .tailwind-theme-toggle .sun-icon,
-[data-bs-theme="dark"] .tailwind-theme-toggle .sun-icon,
-html.dark .tailwind-theme-toggle .sun-icon,
-.tailwind-theme-toggle[aria-checked="true"] .sun-icon {
+/* Dark Mode Morphing Icons: Sun rotates & vanishes, Moon rotates into view */
+body.dark-mode .tailwind-theme-toggle .lucide-sun,
+[data-bs-theme="dark"] .tailwind-theme-toggle .lucide-sun,
+html.dark .tailwind-theme-toggle .lucide-sun,
+.tailwind-theme-toggle[aria-checked="true"] .lucide-sun {
     opacity: 0;
-    transform: rotate(90deg) scale(0.35);
+    transform: rotate(-90deg) scale(0);
 }
 
-body.dark-mode .tailwind-theme-toggle .moon-icon,
-[data-bs-theme="dark"] .tailwind-theme-toggle .moon-icon,
-html.dark .tailwind-theme-toggle .moon-icon,
-.tailwind-theme-toggle[aria-checked="true"] .moon-icon {
-    color: #818cf8;
+body.dark-mode .tailwind-theme-toggle .lucide-moon,
+[data-bs-theme="dark"] .tailwind-theme-toggle .lucide-moon,
+html.dark .tailwind-theme-toggle .lucide-moon,
+.tailwind-theme-toggle[aria-checked="true"] .lucide-moon {
     opacity: 1;
     transform: rotate(0deg) scale(1);
+}
+
+/* ==========================================================================
+   View Transitions API Circular Ripple Theme Reveal (Copied from rbp-portfolio)
+   ========================================================================== */
+::view-transition-old(root),
+::view-transition-new(root) {
+    mix-blend-mode: normal;
+    animation: none;
+}
+
+html[data-theme-anim="1"]::view-transition-old(root) {
+    z-index: 0;
+}
+
+html[data-theme-anim="1"]::view-transition-new(root) {
+    z-index: 1;
+    animation: 0.65s cubic-bezier(0.22, 1, 0.36, 1) both theme-reveal;
+}
+
+@keyframes theme-reveal {
+    0% {
+        clip-path: circle(0px at var(--theme-cx, 50%) var(--theme-cy, 50%));
+    }
+    100% {
+        clip-path: circle(var(--theme-r, 100vw) at var(--theme-cx, 50%) var(--theme-cy, 50%));
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html[data-theme-anim="1"]::view-transition-new(root) {
+        animation: none;
+    }
 }
 
 /* ==========================================================================
@@ -1916,23 +1883,13 @@ body.dark-mode .hover-primary:hover {
 
     /* Compact Theme Toggle */
     .tailwind-theme-toggle {
-        width: 50px;
-        height: 28px;
-        padding: 2px;
+        width: 32px;
+        height: 32px;
     }
 
-    .tailwind-theme-toggle .toggle-thumb {
-        width: 22px;
-        height: 22px;
-    }
-
-    .tailwind-theme-toggle[aria-checked="true"] .toggle-thumb {
-        transform: translateX(22px);
-    }
-
-    .tailwind-theme-toggle .toggle-track-icon svg {
-        width: 12px;
-        height: 12px;
+    .tailwind-theme-toggle .theme-toggle-icon-wrap {
+        width: 15px;
+        height: 15px;
     }
 
     /* Compact Language Switcher Pill */

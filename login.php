@@ -95,37 +95,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['btnlogin'])) {
     <div class="login-page-wrapper">
         <!-- Top Right Controls (Theme Toggle & Language Switcher) -->
         <div class="position-absolute top-0 end-0 p-3 p-md-4 d-flex align-items-center gap-2" style="z-index: 20;">
-            <!-- Tailwind Dark/White Mode Toggle -->
+            <!-- Single Theme Toggle Button (Copied styling from rbp-portfolio.vercel.app) -->
             <button type="button" 
-                    class="tailwind-theme-toggle" 
+                    class="tailwind-theme-toggle focus-ring" 
                     id="themeToggleBtn"
-                    role="switch" 
-                    aria-checked="false" 
                     title="<?php echo __('theme'); ?>" 
                     aria-label="<?php echo __('theme'); ?>"
                     tabindex="0">
-              <input type="checkbox" id="checkbox" class="visually-hidden" aria-hidden="true">
-              <span class="toggle-track-icon track-sun" aria-hidden="true">
-                <svg viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd" />
+              <span class="theme-toggle-icon-wrap" aria-hidden="true">
+                <!-- Sun Icon (Active in Light Mode) -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon lucide-sun" aria-hidden="true">
+                  <circle cx="12" cy="12" r="4"></circle>
+                  <path d="M12 2v2"></path>
+                  <path d="M12 20v2"></path>
+                  <path d="m4.93 4.93 1.41 1.41"></path>
+                  <path d="m17.66 17.66 1.41 1.41"></path>
+                  <path d="M2 12h2"></path>
+                  <path d="M20 12h2"></path>
+                  <path d="m6.34 17.66-1.41 1.41"></path>
+                  <path d="m19.07 4.93-1.41 1.41"></path>
                 </svg>
-              </span>
-              <span class="toggle-track-icon track-moon" aria-hidden="true">
-                <svg viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+                <!-- Moon Icon (Active in Dark Mode) -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon lucide-moon" aria-hidden="true">
+                  <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"></path>
                 </svg>
-              </span>
-              <span class="toggle-thumb" aria-hidden="true">
-                <span class="thumb-icon sun-icon">
-                  <svg viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd" />
-                  </svg>
-                </span>
-                <span class="thumb-icon moon-icon">
-                  <svg viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
-                  </svg>
-                </span>
               </span>
             </button>
 
@@ -266,9 +259,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['btnlogin'])) {
                 });
             }
 
-            window.toggleAppTheme = function() {
+            window.toggleAppTheme = function(event) {
                 var isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark' || document.body.classList.contains('dark-mode');
-                applyTheme(!isDark);
+                var nextIsDark = !isDark;
+
+                if (!document.startViewTransition || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) {
+                    applyTheme(nextIsDark);
+                    return;
+                }
+
+                var x, y;
+                if (event && (typeof event.clientX === 'number' && typeof event.clientY === 'number' && (event.clientX !== 0 || event.clientY !== 0))) {
+                    x = event.clientX;
+                    y = event.clientY;
+                } else {
+                    var btn = document.querySelector('#themeToggleBtn, .tailwind-theme-toggle');
+                    if (btn) {
+                        var rect = btn.getBoundingClientRect();
+                        x = rect.left + rect.width / 2;
+                        y = rect.top + rect.height / 2;
+                    } else {
+                        x = window.innerWidth / 2;
+                        y = window.innerHeight / 2;
+                    }
+                }
+
+                var endRadius = Math.hypot(
+                    Math.max(x, window.innerWidth - x),
+                    Math.max(y, window.innerHeight - y)
+                );
+
+                document.documentElement.style.setProperty('--theme-cx', x + 'px');
+                document.documentElement.style.setProperty('--theme-cy', y + 'px');
+                document.documentElement.style.setProperty('--theme-r', endRadius + 'px');
+                document.documentElement.setAttribute('data-theme-anim', '1');
+
+                var transition = document.startViewTransition(function() {
+                    applyTheme(nextIsDark);
+                });
+
+                transition.finished.finally(function() {
+                    document.documentElement.removeAttribute('data-theme-anim');
+                });
             };
 
             if (currentTheme === 'dark') {
@@ -285,7 +317,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['btnlogin'])) {
                 var toggleBtn = e.target.closest('.tailwind-theme-toggle, #themeToggleBtn');
                 if (toggleBtn) {
                     e.preventDefault();
-                    window.toggleAppTheme();
+                    window.toggleAppTheme(e);
                 }
             });
 
@@ -293,7 +325,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['btnlogin'])) {
                 var toggleBtn = e.target.closest('.tailwind-theme-toggle, #themeToggleBtn');
                 if (toggleBtn && (e.key === ' ' || e.key === 'Enter')) {
                     e.preventDefault();
-                    window.toggleAppTheme();
+                    window.toggleAppTheme(e);
                 }
             });
 

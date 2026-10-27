@@ -89,11 +89,50 @@ if (!function_exists('__')) {
             window.dispatchEvent(new CustomEvent('appThemeChanged', { detail: { isDark: isDark, theme: isDark ? 'dark' : 'light' } }));
         }
 
-        // Global theme controls
+        // Global theme controls with View Transitions API (Circular Ripple effect)
         window.setAppTheme = applyTheme;
-        window.toggleAppTheme = function() {
+        window.toggleAppTheme = function(event) {
             var isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark' || document.body.classList.contains('dark-mode');
-            applyTheme(!isDark);
+            var nextIsDark = !isDark;
+
+            if (!document.startViewTransition || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) {
+                applyTheme(nextIsDark);
+                return;
+            }
+
+            var x, y;
+            if (event && (typeof event.clientX === 'number' && typeof event.clientY === 'number' && (event.clientX !== 0 || event.clientY !== 0))) {
+                x = event.clientX;
+                y = event.clientY;
+            } else {
+                var btn = document.querySelector('#themeToggleBtn, .tailwind-theme-toggle');
+                if (btn) {
+                    var rect = btn.getBoundingClientRect();
+                    x = rect.left + rect.width / 2;
+                    y = rect.top + rect.height / 2;
+                } else {
+                    x = window.innerWidth / 2;
+                    y = window.innerHeight / 2;
+                }
+            }
+
+            var endRadius = Math.hypot(
+                Math.max(x, window.innerWidth - x),
+                Math.max(y, window.innerHeight - y)
+            );
+
+            document.documentElement.style.setProperty('--theme-cx', x + 'px');
+            document.documentElement.style.setProperty('--theme-cy', y + 'px');
+            document.documentElement.style.setProperty('--theme-r', endRadius + 'px');
+            document.documentElement.setAttribute('data-theme-anim', '1');
+
+            var transition = document.startViewTransition(function() {
+                applyTheme(nextIsDark);
+            });
+
+            transition.finished.finally(function() {
+                document.documentElement.removeAttribute('data-theme-anim');
+            });
         };
 
         // Initialize state on page load
@@ -112,7 +151,7 @@ if (!function_exists('__')) {
             var toggleBtn = e.target.closest('.tailwind-theme-toggle, .tailwind-icon-toggle, #themeToggleBtn');
             if (toggleBtn) {
                 e.preventDefault();
-                window.toggleAppTheme();
+                window.toggleAppTheme(e);
             }
         });
 
@@ -121,7 +160,7 @@ if (!function_exists('__')) {
             var toggleBtn = e.target.closest('.tailwind-theme-toggle, .tailwind-icon-toggle, #themeToggleBtn');
             if (toggleBtn && (e.key === ' ' || e.key === 'Enter')) {
                 e.preventDefault();
-                window.toggleAppTheme();
+                window.toggleAppTheme(e);
             }
         });
 

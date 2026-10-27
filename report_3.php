@@ -10,7 +10,7 @@ include_once("Navbar.php");
             <div>
                 <h3 class="card-title mb-0">
                     <i class="fa-solid fa-hourglass-half text-warning me-2"></i><?php echo __('rep3_title'); ?>
-                </h3>
+                </h3><br>
                 <small class="text-muted"><?php echo __('rep3_subtitle'); ?></small>
             </div>
             <div class="d-flex align-items-center gap-2">

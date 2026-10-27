@@ -180,7 +180,7 @@ $progressPercent = $grandTotal > 0 ? (int)round(($totalPaid / $grandTotal) * 100
                                 </td>
                                 <td>$<?php echo number_format($principalVal, 2); ?></td>
                                 <td>$<?php echo number_format($interestVal, 2); ?></td>
-                                <td>
+                                <td>    
                                     <span class="fw-bold text-primary">$<?php echo number_format($totalMonthly, 2); ?></span>
                                 </td>
                                 <td>

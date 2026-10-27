@@ -52,7 +52,9 @@ depre_system/
 │   ├── sweetalert.js           # SweetAlert2 modal bindings
 │   └── (custom utilities)
 ├── images/                     # Uploaded customer & user avatar assets
-├── db_depreciation.sql         # Database schema, seed data & SQL views
+├── migrations/                 # Sequential SQL migration files
+├── migrate.php                 # Database migration & initializer engine
+├── db_depreciation.sql         # Legacy database dump
 ├── connection.php              # MySQLi connection & null-safe helpers
 ├── auth.php                    # Authentication guard & security headers
 ├── lang.php                    # Bilingual dictionary (EN & KH)
@@ -100,14 +102,27 @@ cd d:/laragon/www/
 git clone https://github.com/theinvinciblebe/Depreciation-System.git depre_system
 ```
 
-### Step 2: Set Up Database
-1. Open your database administration tool (**phpMyAdmin**, **HeidiSQL**, or **Navicat**).
-2. Create a new database named:
-   ```sql
-   CREATE DATABASE db_depreciation CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-   ```
-3. Import the database dump file:
-   - File path: `d:/laragon/www/depre_system/db_depreciation.sql`
+### Step 2: Initialize Database with Migrations (Automated)
+
+You no longer need to manually import SQL files into phpMyAdmin! You can initialize or migrate the database in one of two easy ways:
+
+#### Option A: Terminal / CLI
+```bash
+php migrate.php
+```
+
+#### Option B: Web Browser
+Navigate to:
+```
+http://localhost/depre_system/migrate.php
+```
+and click **Run Pending Migrations**.
+
+> [!TIP]
+> The migration system automatically creates the `db_depreciation` database if it doesn't exist, runs all schema files in `migrations/`, and tracks applied migrations in a `migrations` table.
+> To create future database changes, run: `php migrate.php make your_change_name` or click **New File** in the web interface.
+
+*(Manual fallback: You can still manually import `db_depreciation.sql` if desired).*
 
 ### Step 3: Configure Database Connection
 Edit [connection.php](file:///d:/laragon/www/depre_system/connection.php) if your local MySQL settings differ from default:
@@ -132,10 +147,11 @@ http://localhost/depre_system/
 | Username | Password | Role |
 | :--- | :--- | :--- |
 | **`Admin`** | **`123`** | System Administrator |
-| **`Thea`** | **`001`** | Staff / Auditor |
+| **`Thea`** | **`001`** | Branch Manager |
+| **`Sopheap`** | **`1234`** | Loan Officer |
 
 > [!NOTE]
-> Upon your first successful login, legacy plaintext passwords will automatically and transparently be rehashed using PHP's `PASSWORD_DEFAULT` algorithm.
+> All passwords use standard `password_hash()` (bcrypt). To re-seed the sample data anytime, run `php migrate.php seed` or click **Re-seed Data** in [`migrate.php`](file:///d:/laragon/www/depre_system/migrate.php).
 
 ---
 
